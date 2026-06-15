@@ -254,7 +254,7 @@ if __name__ == "__main__":
     import uvicorn
     p = argparse.ArgumentParser()
     p.add_argument("--host", default="0.0.0.0")
-    p.add_argument("--port", type=int, default=3000)
+    p.add_argument("--port", type=int, default=3005)
     a = p.parse_args()
     try:
         sys.stderr.write(f"Agnes Finance Research on http://localhost:{a.port}\n")

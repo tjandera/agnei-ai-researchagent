@@ -360,13 +360,14 @@ def offline_synthesis(real: dict, research: dict) -> dict:
 # Live synthesis
 # ------------------------------------------------------------------ #
 
-# Token budget tuned to actual usage. The JSON digest is ~1.2k tokens; the
-# rest is reasoning. Thinking mode needs headroom for its internal trace.
-# Quick mode skips thinking entirely so it can run on a tight budget.
-SYNTHESIS_ATTEMPT_TIMEOUT_S = 110
-SYNTHESIS_RETRY_TIMEOUT_S = 45
-SYNTHESIS_MAX_TOKENS = 5120         # thinking mode (reasoning + json)
-SYNTHESIS_MAX_TOKENS_QUICK = 2048   # no thinking, just json
+# Token budget tuned to actual usage. The digest JSON is ~1k-1.5k tokens.
+# We do not use thinking mode for synthesis: structured JSON output does not
+# benefit from a reasoning trace, and skipping it cuts response time from
+# ~60-100 s to ~10-15 s with no measurable quality loss on a grounded prompt.
+SYNTHESIS_ATTEMPT_TIMEOUT_S = 45
+SYNTHESIS_RETRY_TIMEOUT_S = 25
+SYNTHESIS_MAX_TOKENS = 2560         # plenty for the JSON
+SYNTHESIS_MAX_TOKENS_QUICK = 2048
 
 
 def _message_text(client: "AgnesClient", resp: dict) -> str:
@@ -476,9 +477,8 @@ def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int, q
         {"role": "system", "content": SYNTHESIS_PROMPT},
         {"role": "user", "content": user},
     ]
-    # In quick mode skip thinking mode entirely — typical synthesis drops from
-    # ~45 s to ~12 s with no measurable quality loss on grounded JSON output.
-    use_thinking = not quick
+    # Thinking mode adds ~50-90 s with no measurable quality gain on grounded
+    # JSON synthesis. We keep it off and use a tight token budget.
     token_budget = SYNTHESIS_MAX_TOKENS_QUICK if quick else SYNTHESIS_MAX_TOKENS
 
     last_err = None
@@ -486,7 +486,7 @@ def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int, q
         deadline = SYNTHESIS_ATTEMPT_TIMEOUT_S if attempt == 0 else SYNTHESIS_RETRY_TIMEOUT_S
         content = _chat_with_deadline(
             client, messages, deadline,
-            thinking=use_thinking, max_tokens=token_budget,
+            thinking=False, max_tokens=token_budget,
         )
         try:
             return _coerce_digest(_extract_json(content), real)
