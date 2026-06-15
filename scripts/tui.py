@@ -53,6 +53,9 @@ SOURCE_META: Dict[str, Tuple[str, str, str]] = {
     "search_hackernews": ("🟡", "Hacker News",  "yellow"),
     "search_polymarket": ("📊", "Polymarket",   "cyan"),
     "search_web":        ("🌐", "Web",          "blue"),
+    "search_github":     ("🐙", "GitHub",       "white"),
+    "search_devto":      ("👩‍💻", "Dev.to",       "magenta"),
+    "search_arxiv":      ("📄", "ArXiv",        "green"),
 }
 
 STATUS_SEARCHING = "searching…"

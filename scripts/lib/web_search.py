@@ -34,7 +34,7 @@ def search_web(query: str, limit: int = 10, days: int = 30) -> List[Dict]:
 
 def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]:
     """Brave Search API — 2,000 free queries/month."""
-    freshness_map = {7: "pw", 30: "pm", 365: "py"}
+    freshness_map = {1: "pd", 7: "pw", 31: "pm", 365: "py"}
     freshness = next((v for k, v in freshness_map.items() if days <= k), "py")
 
     headers = {
@@ -43,13 +43,15 @@ def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]
         "X-Subscription-Token": api_key,
     }
     params = {
-        "q":         query,
-        "count":     min(limit, 20),
-        "freshness": freshness,
+        "q":           query,
+        "count":       min(limit, 20),
+        "freshness":   freshness,
         "search_lang": "en",
-        # Exclude social platforms — they're covered by other connectors
-        "result_filter": "web",
     }
+    # Only add result_filter=web when not doing a site: search
+    # (site: queries need to be unrestricted to return social/forum results)
+    if "site:" not in query:
+        params["result_filter"] = "web"
 
     try:
         resp = requests.get(BRAVE_URL, headers=headers, params=params, timeout=12)
@@ -58,10 +60,14 @@ def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]
     except Exception as e:
         return [{"error": str(e), "source": "web_brave"}]
 
+    # When doing a site: search, don't skip that domain
+    site_query = next((p.split("site:")[-1].split()[0] for p in [query] if "site:" in p), None)
+    skip = {d for d in SKIP_DOMAINS if d != site_query}
+
     results = []
     for r in data.get("web", {}).get("results", []):
         url = r.get("url", "")
-        if any(d in url for d in SKIP_DOMAINS):
+        if any(d in url for d in skip):
             continue
         results.append({
             "source":      "web",

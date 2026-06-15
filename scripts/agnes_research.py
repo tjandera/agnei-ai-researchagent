@@ -40,6 +40,9 @@ from lib.reddit_search import search_reddit
 from lib.hackernews_search import search_hackernews
 from lib.polymarket_search import search_polymarket
 from lib.web_search import search_web
+from lib.github_search import search_github
+from lib.devto_search import search_devto
+from lib.arxiv_search import search_arxiv
 from tui import make_ui
 
 
@@ -164,6 +167,63 @@ RESEARCH_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_github",
+            "description": (
+                "Search GitHub for repositories related to a topic. "
+                "Returns repos with star counts, descriptions, and languages. "
+                "Best for tech topics, open-source tools, what developers are actively building."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 8},
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_devto",
+            "description": (
+                "Search Dev.to for developer blog posts about a topic. "
+                "Returns posts with reaction counts. "
+                "Best for developer opinions, tutorials, and tool comparisons."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 8},
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_arxiv",
+            "description": (
+                "Search ArXiv for academic papers and preprints. "
+                "Returns papers with abstracts and authors. "
+                "Best for AI/ML research, science, and technical deep-dives."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 6},
+                },
+                "required": ["query"],
+            },
+        },
+    },
 ]
 
 
@@ -178,7 +238,7 @@ your findings into a grounded, cited brief.
 RESEARCH STRATEGY:
 1. Run 2-4 parallel searches across different platforms. Use specific query variations:
    - Exact topic name
-   - Topic + "review" or "discussion" or "2025"
+   - Topic + "review" or "discussion" or the current year
    - For people: their handle or full name
    - For tools: "[tool] alternative" or "[tool] vs"
 
@@ -264,6 +324,24 @@ def execute_tool(name: str, args: dict, days: int = 30) -> str:
                 limit=args.get("limit", 10),
                 days=days,
             )
+        elif name == "search_github":
+            results = search_github(
+                args["query"],
+                limit=args.get("limit", 8),
+                days=days,
+            )
+        elif name == "search_devto":
+            results = search_devto(
+                args["query"],
+                limit=args.get("limit", 8),
+                days=days,
+            )
+        elif name == "search_arxiv":
+            results = search_arxiv(
+                args["query"],
+                limit=args.get("limit", 6),
+                days=days,
+            )
         else:
             return json.dumps({"error": f"Unknown tool: {name}"})
 
@@ -297,16 +375,19 @@ def run_parallel_research(
     ui.start()
 
     # Pre-planned search queries (Agnes decides in normal mode; here we fan out)
-    n = 5 if quick else 15
+    n    = 5 if quick else 15
+    year = datetime.now().year
     searches = [
         ("search_reddit",     {"query": topic,                              "limit": n}),
         ("search_reddit",     {"query": f"{topic} review discussion",       "limit": n}),
-        ("search_reddit",     {"query": f"{topic} 2025",                    "limit": n}),
         ("search_hackernews", {"query": topic,                              "limit": 5 if quick else 10}),
-        ("search_hackernews", {"query": f"{topic} 2025",                    "limit": 5 if quick else 10}),
+        ("search_hackernews", {"query": f"{topic} {year}",                  "limit": 5 if quick else 10}),
         ("search_polymarket", {"query": topic,                              "limit": 8}),
-        ("search_web",        {"query": f"{topic} 2025",                    "limit": 5 if quick else 10}),
+        ("search_web",        {"query": f"{topic} {year}",                  "limit": 5 if quick else 10}),
         ("search_web",        {"query": f"{topic} latest news",             "limit": 5 if quick else 10}),
+        ("search_github",     {"query": topic,                              "limit": 5 if quick else 8}),
+        ("search_devto",      {"query": topic,                              "limit": 5 if quick else 8}),
+        ("search_arxiv",      {"query": topic,                              "limit": 3 if quick else 6}),
     ]
 
     tracked = ui.wrap_executor(lambda name, args: execute_tool(name, args, days))
@@ -338,9 +419,11 @@ def run_parallel_research(
             pass
 
     synthesis_input = (
-        f"Topic: **{topic}** (look-back: {days} days)\n\n"
+        f"Topic: **{topic}**\n"
+        f"Today: {datetime.now().strftime('%B %d, %Y')} · Look-back: {days} days\n\n"
         + "\n\n".join(sections)
-        + "\n\nSynthesize the above into a grounded research brief following the format in your instructions."
+        + "\n\nSynthesize the above into a grounded research brief. "
+        "Only cite what is in the data above. Do not fill gaps with training knowledge from prior years."
     )
 
     report = client.get_message_content(
@@ -386,11 +469,13 @@ def run_research(
     ui.start()
 
     # Build user message for orchestrator
+    year = datetime.now().year
     user_message = (
         f"Research this topic thoroughly: **{topic}**\n\n"
-        f"Look back {days} days. "
+        f"Today is {datetime.now().strftime('%B %d, %Y')}. Look back {days} days only — focus on recent content from {year}, not older years. "
         f"{'Run quick searches with fewer results.' if quick else 'Run comprehensive searches.'}\n\n"
         f"Use all available tools. Run multiple query variations to get broad coverage. "
+        f"When adding a year to queries, use {year} — not any prior year. "
         f"Then synthesize everything into a grounded report following the output format in your instructions."
     )
 
