@@ -253,6 +253,37 @@ main { padding-bottom: 80px; }
 .byline .pip { width: 4px; height: 4px; border-radius: 50%; background: var(--line2); }
 .byline .live-tag { color: var(--up); }
 .byline .fallback-tag { color: var(--amber); }
+.byline .window-tag {
+  color: var(--accent); border: 1px solid var(--accent-deep); border-radius: 14px;
+  padding: 2px 9px; background: var(--accent-glow);
+}
+
+/* Window verification panel */
+.window-panel {
+  margin-top: 18px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px;
+  overflow: hidden;
+}
+.window-cell { background: var(--ink2); padding: 12px 14px; }
+.window-cell .wk-label {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 6px;
+}
+.window-cell .wk-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--up); }
+.window-cell .wk-value { font-family: var(--mono); font-size: 13px; color: var(--paper); margin-top: 6px; }
+.window-cell .wk-sub { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dim); margin-top: 3px; }
+
+/* Section sub-note: "from past 7 days" badge */
+.window-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  color: var(--accent); padding: 3px 9px;
+  border: 1px solid var(--accent-deep); border-radius: 12px; background: var(--accent-glow);
+}
+.window-badge::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+}
 
 /* ─────────── Sections ─────────── */
 .section { padding: 26px 0; }
@@ -599,6 +630,7 @@ main { padding-bottom: 80px; }
       </div>
       <div class="quote-band" id="quote-band"></div>
       <div class="essentials" id="essentials"></div>
+      <div class="window-panel" id="window-panel" style="display:none"></div>
       <button class="details-toggle" id="details-toggle" style="display:none">Show all numbers ↓</button>
       <div class="details-grid" id="details-grid"></div>
     </section>
@@ -680,7 +712,7 @@ main { padding-bottom: 80px; }
     <section class="section" id="news-section" style="display:none">
       <div class="sec-head">
         <h2 class="sec-title"><span class="idx">06</span> Latest news</h2>
-        <span class="sec-note">Yahoo Finance · clickable</span>
+        <span class="window-badge" id="news-window-badge">from the past 30 days</span>
       </div>
       <div class="news-list" id="news-list"></div>
     </section>
@@ -948,6 +980,7 @@ function resetView() {
   ["quote-section","tldr-section","drivers-section","bullbear-section",
    "chart-section","news-section","watch-section","share-section","footer"]
     .forEach((id) => { const e = $(id); if (e) e.style.display = "none"; });
+  const wp = $("window-panel"); if (wp) wp.style.display = "none";
   if (State.chart) { try { State.chart.destroy(); } catch {} State.chart = null; }
   $("price-canvas").style.display = "none";
   $("chart-skel").style.display = "grid";
@@ -1258,6 +1291,7 @@ function renderDigest(d) {
 
   setText($("headline"), d.headline || "Stock brief");
   renderByline(d.meta || {});
+  renderWindowPanel((d.meta && d.meta.window) || null);
 
   // 02 TL;DR + action
   if (d.tldr || (d.action && d.action.signal)) {
@@ -1327,11 +1361,75 @@ function renderByline(meta) {
     try { when = new Date(meta.generated_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch {}
     bits.push('<span>' + esc(when) + "</span>");
   }
+  const winLabel = (meta.window && meta.window.label) || (meta.days ? ("past " + meta.days + " days") : null);
+  if (winLabel) bits.push('<span class="window-tag">' + esc(winLabel) + "</span>");
   if (meta.model && meta.model !== "offline") bits.push('<span>' + esc(meta.model) + "</span>");
   if (meta.live === true) bits.push('<span class="live-tag">live</span>');
   else bits.push('<span class="fallback-tag">offline mode</span>');
   if (meta.elapsed_s != null) bits.push('<span>built in ' + esc(Number(meta.elapsed_s).toFixed(1)) + "s</span>");
   el.innerHTML = bits.join('<span class="pip"></span>');
+}
+
+function renderWindowPanel(w) {
+  const panel = $("window-panel");
+  if (!w) { panel.style.display = "none"; return; }
+
+  // Update news badge to match the actual window.
+  const badge = $("news-window-badge");
+  if (badge) badge.textContent = "from the " + (w.label || ("past " + w.requested_days + " days"));
+
+  const cells = [];
+  // News cell
+  const news = w.news || {};
+  const newsValue = news.count + " article" + (news.count === 1 ? "" : "s");
+  const newsSub = (news.newest_age_days != null && news.oldest_age_days != null)
+    ? "newest " + ageLabel(news.newest_age_days) + " · oldest " + ageLabel(news.oldest_age_days)
+    : "filter: " + (news.filter || "—");
+  cells.push(windowCell("News", newsValue, news.source + " · " + newsSub));
+
+  // Web cell
+  const web = w.web || {};
+  cells.push(windowCell(
+    "Web search",
+    web.count + " result" + (web.count === 1 ? "" : "s"),
+    (web.source || "") + " · " + (web.filter || "")
+  ));
+
+  // Reddit cell
+  const reddit = w.reddit || {};
+  cells.push(windowCell(
+    "Reddit",
+    reddit.count + " thread" + (reddit.count === 1 ? "" : "s"),
+    (reddit.source || "") + " · " + (reddit.filter || "")
+  ));
+
+  // Chart cell — always >=90d
+  const chart = w.chart || {};
+  cells.push(windowCell(
+    "Price chart",
+    chart.points + " trading day" + (chart.points === 1 ? "" : "s"),
+    "Yahoo Finance OHLCV · always ≥90d for context"
+  ));
+
+  panel.innerHTML = cells.join("");
+  panel.style.display = "grid";
+}
+
+function windowCell(label, value, sub) {
+  return (
+    '<div class="window-cell">' +
+      '<div class="wk-label"><span class="dot"></span>' + esc(label) + "</div>" +
+      '<div class="wk-value">' + esc(value) + "</div>" +
+      '<div class="wk-sub">' + esc(sub) + "</div>" +
+    "</div>"
+  );
+}
+
+function ageLabel(days) {
+  if (days == null) return "—";
+  if (days < 1/24) return "just now";
+  if (days < 1) return Math.round(days * 24) + "h ago";
+  return days.toFixed(1) + "d ago";
 }
 
 function renderNews(items) {
