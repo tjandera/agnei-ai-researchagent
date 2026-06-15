@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agnes Research</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg:       #0c0c0c;
+    --bg2:      #111111;
+    --bg3:      #161616;
+    --border:   #1f1f1f;
+    --border2:  #2a2a2a;
+    --green:    #00e87a;
+    --green2:   #00b85e;
+    --cyan:     #00d4ff;
+    --yellow:   #ffd060;
+    --orange:   #ff8c42;
+    --red:      #ff5555;
+    --text:     #c8c8c8;
+    --text-dim: #555;
+    --text-mid: #888;
+    --font: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Window chrome ── */
+  .window {
+    max-width: 960px;
+    margin: 24px auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,.8);
+  }
+
+  .titlebar {
+    background: #1a1a1a;
+    border-bottom: 1px solid var(--border);
+    padding: 11px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+  }
+
+  .dots { display: flex; gap: 7px; }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    cursor: default;
+  }
+  .dot-red    { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green  { background: #28c840; }
+
+  .titlebar-label {
+    flex: 1;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: .5px;
+  }
+
+  .titlebar-status {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green2); }
+
+  /* ── Main body ── */
+  .body { background: var(--bg); }
+
+  /* ── Panels ── */
+  .panel {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+  }
+  .panel:last-child { border-bottom: none; }
+
+  .panel-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── Input area ── */
+  .prompt-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .prompt-char {
+    color: var(--green);
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  #topic-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-family: var(--font);
+    font-size: 14px;
+    caret-color: var(--green);
+  }
+
+  #topic-input::placeholder { color: var(--text-dim); }
+
+  .input-underline {
+    height: 1px;
+    background: var(--border2);
+    margin-bottom: 18px;
+    transition: background .2s;
+  }
+  .input-underline.focused { background: var(--green2); }
+
+  /* ── Options row ── */
+  .options-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .opt-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .opt-label {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .btn-group { display: flex; gap: 4px; }
+
+  .day-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text-mid);
+    font-family: var(--font);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .day-btn:hover { border-color: var(--green2); color: var(--text); }
+  .day-btn.active {
+    background: #0d2e1a;
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+  }
+
+  .toggle-track {
+    width: 34px; height: 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 9px;
+    position: relative;
+    transition: all .2s;
+  }
+  .toggle-track.on {
+    background: #0d2e1a;
+    border-color: var(--green);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: all .2s;
+  }
+  .toggle-track.on .toggle-thumb {
+    left: 18px;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green2);
+  }
+
+  .toggle-label { font-size: 11px; color: var(--text-mid); }
+  .toggle-track.on + .toggle-label { color: var(--green); }
+
+  /* ── Run button ── */
+  .run-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0d2e1a;
+    border: 1px solid var(--green2);
+    color: var(--green);
+    font-family: var(--font);
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .run-btn:hover:not(:disabled) {
+    background: #153d22;
+    border-color: var(--green);
+    box-shadow: 0 0 16px rgba(0,232,122,.15);
+  }
+  .run-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+  .run-btn .spinner { display: none; }
+  .run-btn.running .spinner { display: inline; animation: spin 1s linear infinite; }
+  .run-btn.running .run-icon { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Sources table ── */
+  #sources-panel { display: none; }
+
+  .source-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .source-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 0 8px 8px 8px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .source-row {
+    border-bottom: 1px solid var(--border);
+    animation: slideIn .25s ease;
+  }
+  .source-row:last-child { border-bottom: none; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .source-row td {
+    padding: 7px 8px;
+    font-size: 12px;
+    vertical-align: middle;
+  }
+
+  .col-icon  { width: 28px; }
+  .col-src   { width: 120px; }
+  .col-query { color: var(--text-dim); }
+  .col-status{ width: 140px; text-align: right; white-space: nowrap; }
+
+  .src-name  { color: var(--text-mid); }
+
+  .status-searching { color: var(--text-dim); }
+  .status-done      { color: var(--green); }
+  .status-empty     { color: var(--text-dim); }
+  .status-error     { color: var(--red); }
+
+  /* ── Output panel ── */
+  #output-panel { display: none; }
+
+  .output-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .elapsed {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ── Markdown output ── */
+  .markdown-body {
+    color: var(--text);
+    line-height: 1.75;
+  }
+
+  .markdown-body h2 {
+    color: var(--cyan);
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .markdown-body h3 {
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 16px 0 8px;
+  }
+
+  .markdown-body p { margin-bottom: 12px; }
+
+  .markdown-body strong { color: #fff; font-weight: 500; }
+
+  .markdown-body em { color: var(--text-mid); }
+
+  .markdown-body code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--yellow);
+  }
+
+  .markdown-body pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+
+  .markdown-body pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text);
+  }
+
+  .markdown-body hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  .markdown-body ul, .markdown-body ol {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+
+  .markdown-body li { margin-bottom: 4px; }
+
+  .markdown-body blockquote {
+    border-left: 3px solid var(--green2);
+    padding-left: 12px;
+    color: var(--text-mid);
+    margin: 12px 0;
+  }
+
+  /* ── Error banner ── */
+  .error-banner {
+    display: none;
+    background: #1a0a0a;
+    border: 1px solid #3a1a1a;
+    border-radius: 4px;
+    padding: 10px 14px;
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 12px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: 10px 24px;
+    display: flex;
+    gap: 20px;
+    border-top: 1px solid var(--border);
+    background: #0e0e0e;
+  }
+
+  .kbd {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .kbd span {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    color: var(--text-mid);
+    margin-right: 4px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="dots">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+    <div class="titlebar-label">agnes-research — v1.0</div>
+    <div class="titlebar-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">connecting…</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- Input panel -->
+    <div class="panel">
+      <div class="panel-label">Research</div>
+
+      <div class="prompt-row">
+        <span class="prompt-char">❯</span>
+        <input id="topic-input" type="text" placeholder="What do you want to research?" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="input-underline" id="input-underline"></div>
+
+      <div class="options-row">
+        <div class="opt-group">
+          <span class="opt-label">Days</span>
+          <div class="btn-group">
+            <button class="day-btn" data-days="7">7d</button>
+            <button class="day-btn active" data-days="30">30d</button>
+            <button class="day-btn" data-days="90">90d</button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <span class="opt-label">Quick</span>
+          <div class="toggle" id="quick-toggle">
+            <div class="toggle-track" id="quick-track"><div class="toggle-thumb"></div></div>
+            <span class="toggle-label">OFF</span>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <span class="opt-label">Parallel</span>
+          <div class="toggle" id="parallel-toggle">
+            <div class="toggle-track on" id="parallel-track"><div class="toggle-thumb"></div></div>
+            <span class="toggle-label" id="parallel-label">ON</span>
+          </div>
+        </div>
+
+        <button class="run-btn" id="run-btn">
+          <span class="run-icon">▶</span>
+          <svg class="spinner" width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="20" stroke-dashoffset="10"/>
+          </svg>
+          RUN RESEARCH
+        </button>
+      </div>
+
+      <div class="error-banner" id="error-banner"></div>
+    </div>
+
+    <!-- Sources panel -->
+    <div class="panel" id="sources-panel">
+      <div class="panel-label">Sources</div>
+      <table class="source-table">
+        <thead>
+          <tr>
+            <th class="col-icon"></th>
+            <th class="col-src">Source</th>
+            <th class="col-query">Query</th>
+            <th class="col-status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="source-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Output panel -->
+    <div class="panel" id="output-panel">
+      <div class="output-meta">
+        <div class="panel-label" style="margin:0">Output</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="elapsed" id="elapsed-label"></span>
+          <button class="copy-btn" id="copy-btn">copy</button>
+        </div>
+      </div>
+      <div class="markdown-body" id="output-content"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer shortcuts -->
+  <div class="footer">
+    <span class="kbd"><span>↵</span> run</span>
+    <span class="kbd"><span>Esc</span> clear</span>
+  </div>
+
+</div>
+
+<script>
+const SOURCE_META = {
+  search_reddit:     { icon: '🟠', label: 'Reddit',      color: '#ff8c42' },
+  search_hackernews: { icon: '🟡', label: 'Hacker News', color: '#ffd060' },
+  search_polymarket: { icon: '📊', label: 'Polymarket',  color: '#00d4ff' },
+  search_web:        { icon: '🌐', label: 'Web',         color: '#00e87a' },
+};
+
+// State
+let days     = 30;
+let quick    = false;
+let parallel = true;
+let running  = false;
+let rawReport = '';
+const sourceRows = {}; // query+tool -> tr element
+
+// DOM refs
+const topicInput   = document.getElementById('topic-input');
+const inputUnder   = document.getElementById('input-underline');
+const runBtn       = document.getElementById('run-btn');
+const sourcesPanel = document.getElementById('sources-panel');
+const sourceTbody  = document.getElementById('source-tbody');
+const outputPanel  = document.getElementById('output-panel');
+const outputContent= document.getElementById('output-content');
+const elapsedLabel = document.getElementById('elapsed-label');
+const copyBtn      = document.getElementById('copy-btn');
+const errorBanner  = document.getElementById('error-banner');
+const statusDot    = document.getElementById('status-dot');
+const statusText   = document.getElementById('status-text');
+
+// ── Health check ──────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch('/api/health');
+    const d = await r.json();
+    if (d.agnes) {
+      statusDot.classList.add('online');
+      statusText.textContent = d.web_search ? `agnes · web:${d.web_search.split('_')[0].toLowerCase()}` : 'agnes · no web key';
+    } else {
+      statusText.textContent = 'missing AGNES_API_KEY';
+    }
+  } catch {
+    statusText.textContent = 'offline';
+  }
+}
+checkHealth();
+
+// ── Day buttons ───────────────────────────────────────────────────
+document.querySelectorAll('.day-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    days = parseInt(btn.dataset.days);
+  });
+});
+
+// ── Toggles ───────────────────────────────────────────────────────
+function makeToggle(trackId, labelId, onChange) {
+  const track = document.getElementById(trackId);
+  const label = document.getElementById(labelId || null);
+  let state = track.classList.contains('on');
+
+  const el = track.closest ? track.parentElement : track;
+  track.addEventListener('click', () => {
+    state = !state;
+    track.classList.toggle('on', state);
+    if (label) label.textContent = state ? 'ON' : 'OFF';
+    onChange(state);
+  });
+  return () => state;
+}
+
+document.getElementById('quick-track').addEventListener('click', function() {
+  const on = this.classList.toggle('on');
+  this.nextElementSibling.textContent = on ? 'ON' : 'OFF';
+  quick = on;
+});
+
+document.getElementById('parallel-track').addEventListener('click', function() {
+  const on = this.classList.toggle('on');
+  document.getElementById('parallel-label').textContent = on ? 'ON' : 'OFF';
+  parallel = on;
+});
+
+// ── Input focus ───────────────────────────────────────────────────
+topicInput.addEventListener('focus', () => inputUnder.classList.add('focused'));
+topicInput.addEventListener('blur',  () => inputUnder.classList.remove('focused'));
+topicInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') startResearch();
+  if (e.key === 'Escape') { topicInput.value = ''; }
+});
+
+// ── Run button ────────────────────────────────────────────────────
+runBtn.addEventListener('click', startResearch);
+
+function setRunning(state) {
+  running = state;
+  runBtn.disabled = state;
+  runBtn.classList.toggle('running', state);
+}
+
+// ── Source table ──────────────────────────────────────────────────
+function addSourceRow(tool, query) {
+  const key = `${tool}:${query}`;
+  if (sourceRows[key]) return;
+
+  const meta = SOURCE_META[tool] || { icon: '🔍', label: tool, color: '#888' };
+  const tr = document.createElement('tr');
+  tr.className = 'source-row';
+  tr.innerHTML = `
+    <td class="col-icon">${meta.icon}</td>
+    <td class="col-src"><span class="src-name" style="color:${meta.color}">${meta.label}</span></td>
+    <td class="col-query">${escHtml(query.slice(0, 60))}</td>
+    <td class="col-status"><span class="status-searching">searching…</span></td>
+  `;
+  sourceTbody.appendChild(tr);
+  sourceRows[key] = tr;
+}
+
+function completeSourceRow(tool, query, count, error) {
+  const key = `${tool}:${query}`;
+  const tr = sourceRows[key];
+  if (!tr) return;
+  const cell = tr.querySelector('.col-status span');
+  if (error) {
+    cell.className = 'status-error';
+    cell.textContent = '✗ error';
+  } else if (count === 0) {
+    cell.className = 'status-empty';
+    cell.textContent = '— no results';
+  } else {
+    cell.className = 'status-done';
+    cell.textContent = `✓ ${count} result${count !== 1 ? 's' : ''}`;
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Main research flow ────────────────────────────────────────────
+function startResearch() {
+  const topic = topicInput.value.trim();
+  if (!topic || running) return;
+
+  // Reset UI
+  setRunning(true);
+  errorBanner.style.display = 'none';
+  sourcesPanel.style.display = 'block';
+  outputPanel.style.display  = 'none';
+  sourceTbody.innerHTML = '';
+  outputContent.innerHTML = '';
+  Object.keys(sourceRows).forEach(k => delete sourceRows[k]);
+  rawReport = '';
+
+  const url = `/api/research?topic=${encodeURIComponent(topic)}&days=${days}&quick=${quick}&parallel=${parallel}`;
+  const es  = new EventSource(url);
+
+  es.onmessage = (e) => {
+    const event = JSON.parse(e.data);
+
+    if (event.type === 'search_start') {
+      addSourceRow(event.tool, event.query);
+    }
+    else if (event.type === 'search_done') {
+      completeSourceRow(event.tool, event.query, event.count, event.error);
+    }
+    else if (event.type === 'report') {
+      rawReport = event.content;
+      outputContent.innerHTML = marked.parse(event.content);
+      elapsedLabel.textContent = `completed in ${event.elapsed}s`;
+      outputPanel.style.display = 'block';
+      outputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    else if (event.type === 'error') {
+      errorBanner.textContent = '✗ ' + event.message;
+      errorBanner.style.display = 'block';
+    }
+    else if (event.type === 'done') {
+      es.close();
+      setRunning(false);
+    }
+  };
+
+  es.onerror = () => {
+    es.close();
+    setRunning(false);
+    errorBanner.textContent = '✗ Connection lost. Check that the server is running.';
+    errorBanner.style.display = 'block';
+  };
+}
+
+// ── Copy button ───────────────────────────────────────────────────
+copyBtn.addEventListener('click', () => {
+  if (!rawReport) return;
+  navigator.clipboard.writeText(rawReport).then(() => {
+    copyBtn.textContent = 'copied!';
+    setTimeout(() => copyBtn.textContent = 'copy', 1500);
+  });
+});
+
+// ── Focus on load ─────────────────────────────────────────────────
+topicInput.focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+feat: Agnes Research Skill v1.0.0
+
+- Agnes 2.0 Flash orchestrator with tool calling + Thinking mode
+- Rich terminal UI with live source tracking (tui.py)
+- Connectors: Reddit (public JSON), HN (Algolia), Polymarket (Gamma), Web (Brave/DDG)
+- Agnes Image 2.1 Flash visual report cover (--image)
+- Agnes Video V2.0 animated brief (--video)
+- Adapted from mvanhorn/last30days-skill (MIT)

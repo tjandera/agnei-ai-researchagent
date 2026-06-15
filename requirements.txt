@@ -1,0 +1,9 @@
+# Agnes Research Skill — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# HTTP client (used by all connectors + agnes_client)
+requests>=2.31.0
+
+# Rich terminal UI (optional but strongly recommended)
+# Falls back to plain print() if not installed
+rich>=13.0.0
