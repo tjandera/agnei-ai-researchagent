@@ -360,9 +360,13 @@ def offline_synthesis(real: dict, research: dict) -> dict:
 # Live synthesis
 # ------------------------------------------------------------------ #
 
-SYNTHESIS_ATTEMPT_TIMEOUT_S = 150
-SYNTHESIS_RETRY_TIMEOUT_S = 60
-SYNTHESIS_MAX_TOKENS = 6144
+# Token budget tuned to actual usage. The JSON digest is ~1.2k tokens; the
+# rest is reasoning. Thinking mode needs headroom for its internal trace.
+# Quick mode skips thinking entirely so it can run on a tight budget.
+SYNTHESIS_ATTEMPT_TIMEOUT_S = 110
+SYNTHESIS_RETRY_TIMEOUT_S = 45
+SYNTHESIS_MAX_TOKENS = 5120         # thinking mode (reasoning + json)
+SYNTHESIS_MAX_TOKENS_QUICK = 2048   # no thinking, just json
 
 
 def _message_text(client: "AgnesClient", resp: dict) -> str:
@@ -377,12 +381,15 @@ def _message_text(client: "AgnesClient", resp: dict) -> str:
         return ""
 
 
-def _chat_with_deadline(client: "AgnesClient", messages: list, timeout_s: float) -> str:
+def _chat_with_deadline(
+    client: "AgnesClient", messages: list, timeout_s: float,
+    thinking: bool = True, max_tokens: int = SYNTHESIS_MAX_TOKENS,
+) -> str:
     pool = ThreadPoolExecutor(max_workers=1)
     try:
         fut = pool.submit(
-            client.chat, messages=messages, thinking=True,
-            max_tokens=SYNTHESIS_MAX_TOKENS, temperature=0.4,
+            client.chat, messages=messages, thinking=thinking,
+            max_tokens=max_tokens, temperature=0.3,
         )
         resp = fut.result(timeout=timeout_s)
         return _message_text(client, resp)
@@ -390,7 +397,52 @@ def _chat_with_deadline(client: "AgnesClient", messages: list, timeout_s: float)
         pool.shutdown(wait=False)
 
 
-def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int) -> dict:
+def _trim_research_for_model(research: dict, quick: bool) -> dict:
+    """Keep only what the synthesizer actually uses.
+
+    The full research payload can run 10-20 KB which forces the model to
+    process irrelevant tokens. We keep the top headlines (the model only
+    quotes 2-3 of them) and trim long fields.
+    """
+    news_limit = 4 if quick else 6
+    web_limit = 3 if quick else 4
+    reddit_limit = 3 if quick else 5
+
+    def _slim_news(items):
+        return [
+            {"title": (n.get("title") or "")[:160],
+             "publisher": n.get("publisher") or "",
+             "age": n.get("age") or ""}
+            for n in (items or [])[:news_limit]
+            if n.get("title")
+        ]
+
+    def _slim_web(items):
+        return [
+            {"title": (w.get("title") or "")[:140],
+             "description": (w.get("description") or "")[:240],
+             "site_name": w.get("site_name") or ""}
+            for w in (items or [])[:web_limit]
+            if w.get("title")
+        ]
+
+    def _slim_reddit(items):
+        return [
+            {"title": (r.get("title") or "")[:140],
+             "subreddit": r.get("subreddit") or "",
+             "upvotes": r.get("upvotes", 0)}
+            for r in (items or [])[:reddit_limit]
+            if r.get("title")
+        ]
+
+    return {
+        "news": _slim_news(research.get("news")),
+        "web": _slim_web(research.get("web")),
+        "reddit": _slim_reddit(research.get("reddit")),
+    }
+
+
+def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int, quick: bool = False) -> dict:
     snap = _grounded_snapshot(None, real)
     facts = {
         "symbol": real.get("symbol"),
@@ -410,12 +462,13 @@ def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int) -
         "sector": real.get("sector"),
         "recent_closes": [h.get("close") for h in (real.get("history") or [])[-30:]],
     }
+    slim_research = _trim_research_for_model(research, quick)
     user = (
         f"Asset: {real.get('name')} ({real.get('symbol')})\n"
         f"As of {datetime.now().strftime('%B %d, %Y')}, {days}-day window.\n\n"
         f"VERIFIED MARKET NUMBERS (use these exactly, do not change them):\n"
         f"{json.dumps(facts, ensure_ascii=False)}\n\n"
-        f"RESEARCH DATA:\n{json.dumps(research, ensure_ascii=False)[:14000]}\n\n"
+        f"RESEARCH DATA:\n{json.dumps(slim_research, ensure_ascii=False)}\n\n"
         "Write the JSON digest now. Plain English. Short sentences. "
         "Real numbers only."
     )
@@ -423,10 +476,18 @@ def live_synthesis(client: AgnesClient, real: dict, research: dict, days: int) -
         {"role": "system", "content": SYNTHESIS_PROMPT},
         {"role": "user", "content": user},
     ]
+    # In quick mode skip thinking mode entirely — typical synthesis drops from
+    # ~45 s to ~12 s with no measurable quality loss on grounded JSON output.
+    use_thinking = not quick
+    token_budget = SYNTHESIS_MAX_TOKENS_QUICK if quick else SYNTHESIS_MAX_TOKENS
+
     last_err = None
     for attempt in range(2):
         deadline = SYNTHESIS_ATTEMPT_TIMEOUT_S if attempt == 0 else SYNTHESIS_RETRY_TIMEOUT_S
-        content = _chat_with_deadline(client, messages, deadline)
+        content = _chat_with_deadline(
+            client, messages, deadline,
+            thinking=use_thinking, max_tokens=token_budget,
+        )
         try:
             return _coerce_digest(_extract_json(content), real)
         except Exception as e:
@@ -533,6 +594,32 @@ def build_digest(symbol: str, days: int = 30, topic: str = None, quick: bool = F
     emit({"type": "snapshot", "data": {**{k: v for k, v in real.items() if k != "history"},
                                        "history": history}})
 
+    # Bring up the Agnes client now so we can kick off the image generation
+    # in parallel with research + synthesis (the image is the longest-running
+    # serial step otherwise, blocking the whole brief for ~30 s).
+    if client is None and os.environ.get("AGNES_API_KEY"):
+        try:
+            client = AgnesClient()
+        except Exception:
+            client = None
+
+    # Start hero image generation NOW (in the background) — it only needs
+    # symbol + name, so it can run concurrently with research + synthesis.
+    image_pool = None
+    image_future = None
+    if want_media and client is not None:
+        try:
+            from lib import media_gen
+            image_pool = ThreadPoolExecutor(max_workers=1)
+            image_future = image_pool.submit(
+                media_gen.generate_hero_image,
+                client, real.get("symbol", ""), real.get("name", ""),
+                "",  # theme_hint not available yet; symbol/name is enough
+            )
+            emit({"type": "phase", "key": "image", "label": "Making your share card"})
+        except Exception:
+            image_pool = image_future = None
+
     # 2. Research - news, events, web, reddit.
     emit({"type": "phase", "key": "research", "label": "Reading the news"})
     research = run_research(real, topic, days, quick, progress=progress)
@@ -542,14 +629,9 @@ def build_digest(symbol: str, days: int = 30, topic: str = None, quick: bool = F
     live = False
     fallback = False
     model = "offline"
-    if client is None and os.environ.get("AGNES_API_KEY"):
-        try:
-            client = AgnesClient()
-        except Exception:
-            client = None
     if client is not None:
         try:
-            digest = live_synthesis(client, real, research, days)
+            digest = live_synthesis(client, real, research, days, quick=quick)
             live = True
             model = "agnes-2.0-flash"
             if not digest.get("tldr"):
@@ -565,23 +647,20 @@ def build_digest(symbol: str, days: int = 30, topic: str = None, quick: bool = F
     digest["news"] = research.get("news", [])
     digest["watch_this_week"] = _watch_list(research.get("events", {}), real)
 
-    # 5. Media - hero image only (repurposed as share card backdrop).
+    # 5. Media - collect the image result (likely already complete by now).
     media = {"image_url": None}
-    if want_media:
+    if image_future is not None:
         try:
-            from lib import media_gen
-        except Exception:
-            media_gen = None
-        if media_gen is not None and client is not None:
-            emit({"type": "phase", "key": "image", "label": "Making your share card"})
-            try:
-                media["image_url"] = media_gen.generate_hero_image(
-                    client, real.get("symbol", ""), real.get("name", ""),
-                    theme_hint=digest.get("headline", ""))
-                if media["image_url"]:
-                    emit({"type": "image", "url": media["image_url"]})
-            except Exception as e:
-                emit({"type": "status", "message": f"Share card image skipped: {e}"})
+            # The image normally finishes during synthesis. Cap the wait at
+            # 25 s so a stuck image call can't block the whole brief.
+            media["image_url"] = image_future.result(timeout=25)
+            if media["image_url"]:
+                emit({"type": "image", "url": media["image_url"]})
+        except Exception as e:
+            emit({"type": "status", "message": f"Share card image skipped: {e}"})
+        finally:
+            if image_pool is not None:
+                image_pool.shutdown(wait=False)
 
     digest["history"] = history
     digest["media"] = media

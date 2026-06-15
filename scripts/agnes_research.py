@@ -305,6 +305,7 @@ def execute_tool(name: str, args: dict, days: int = 30) -> str:
                 limit=args.get("limit", 20),
                 days=days,
                 sort=args.get("sort", "relevance"),
+                fetch_comments=True,
             )
         elif name == "search_hackernews":
             results = search_hackernews(

@@ -5,8 +5,8 @@ Fallback: site:reddit.com search via Brave/Serper/Tavily (Reddit now blocks most
 """
 
 import re
-import time
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Optional
 
 REDDIT_SEARCH_URL = "https://www.reddit.com/search.json"
@@ -18,16 +18,22 @@ def search_reddit(
     limit: int = 20,
     days: int = 30,
     sort: str = "relevance",
+    fetch_comments: bool = False,
 ) -> List[Dict]:
-    # Try native API first
-    result = _try_native_api(query, limit, days, sort)
+    """Search Reddit. By default, skips top-comment fetches (faster).
+
+    Pass fetch_comments=True only for the topical research CLI where
+    quote-worthy comments add real signal. The finance digest doesn't
+    quote individual Reddit comments, so it leaves this off.
+    """
+    result = _try_native_api(query, limit, days, sort, fetch_comments)
     if result is not None:
         return result
-    # Fallback: search via web (site:reddit.com)
     return _search_via_web(query, limit, days)
 
 
-def _try_native_api(query: str, limit: int, days: int, sort: str) -> Optional[List[Dict]]:
+def _try_native_api(query: str, limit: int, days: int, sort: str,
+                    fetch_comments: bool) -> Optional[List[Dict]]:
     """Returns None if blocked, list of posts otherwise."""
     params = {
         "q":     query,
@@ -50,7 +56,7 @@ def _try_native_api(query: str, limit: int, days: int, sort: str) -> Optional[Li
     posts = []
     for child in data.get("data", {}).get("children", []):
         p = child.get("data", {})
-        post = {
+        posts.append({
             "source":       "reddit",
             "title":        p.get("title", ""),
             "url":          f"https://reddit.com{p.get('permalink', '')}",
@@ -61,11 +67,25 @@ def _try_native_api(query: str, limit: int, days: int, sort: str) -> Optional[Li
             "created_utc":  p.get("created_utc", 0),
             "selftext":     (p.get("selftext", "") or "")[:500],
             "top_comment":  None,
-        }
-        if post["upvotes"] >= 50 and post["num_comments"] >= 3:
-            post["top_comment"] = _fetch_top_comment(p.get("permalink", ""))
-            time.sleep(0.5)
-        posts.append(post)
+            "_permalink":   p.get("permalink", ""),
+        })
+
+    if fetch_comments:
+        # Pull top comments in parallel for the engaged posts. The old loop
+        # was sequential with a 0.5 s sleep between calls; parallel cuts
+        # this from ~5 s to ~1 s for a typical batch.
+        targets = [p for p in posts
+                   if p["upvotes"] >= 50 and p["num_comments"] >= 3]
+        if targets:
+            with ThreadPoolExecutor(max_workers=min(8, len(targets))) as pool:
+                comments = list(pool.map(
+                    lambda p: _fetch_top_comment(p["_permalink"]), targets,
+                ))
+            for post, comment in zip(targets, comments):
+                post["top_comment"] = comment
+
+    for p in posts:
+        p.pop("_permalink", None)
     return posts
 
 

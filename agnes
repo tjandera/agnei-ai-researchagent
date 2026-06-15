@@ -60,8 +60,9 @@ case "$CMD" in
 
     web)
         shift || true
-        # Parse an optional --port flag (supports both `--port 3000` and `--port=3000`).
+        # Parse optional flags. Supports `--port 3000`, `--port=3000`, `--no-open`.
         PORT=3000
+        OPEN_BROWSER=1
         PASSTHROUGH=()
         while [ $# -gt 0 ]; do
             case "$1" in
@@ -73,16 +74,47 @@ case "$CMD" in
                     PORT="${2:-$PORT}"
                     shift 2 || shift
                     ;;
+                --no-open|--no-browser)
+                    OPEN_BROWSER=0
+                    shift
+                    ;;
                 *)
                     PASSTHROUGH+=("$1")
                     shift
                     ;;
             esac
         done
+
+        URL="http://localhost:$PORT"
         echo ""
-        echo "  Agnes web  →  http://localhost:$PORT"
-        echo "  Press Ctrl+C to stop."
+        echo "  ┌────────────────────────────────────────────────────────────┐"
+        echo "  │  Agnes Stock Brief — web UI                                │"
+        echo "  │                                                            │"
+        echo "  │  Open in your browser:                                     │"
+        echo "  │    $URL$(printf '%*s' $((57 - ${#URL})) '')│"
+        echo "  │                                                            │"
+        echo "  │  Press Ctrl+C in this terminal to stop the server.         │"
+        echo "  └────────────────────────────────────────────────────────────┘"
         echo ""
+
+        # Auto-open the browser after the server has had a moment to bind.
+        if [ "$OPEN_BROWSER" -eq 1 ]; then
+            (
+                # Poll for the port to come up, then open. Avoids racing uvicorn boot.
+                for _ in 1 2 3 4 5 6 7 8 9 10; do
+                    if curl -sf "$URL/api/health" >/dev/null 2>&1; then
+                        if command -v open >/dev/null 2>&1; then
+                            open "$URL" >/dev/null 2>&1
+                        elif command -v xdg-open >/dev/null 2>&1; then
+                            xdg-open "$URL" >/dev/null 2>&1
+                        fi
+                        break
+                    fi
+                    sleep 0.5
+                done
+            ) &
+        fi
+
         exec "$PYTHON" "$ROOT/web/app.py" --port "$PORT" "${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}"
         ;;
 
