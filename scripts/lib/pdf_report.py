@@ -157,12 +157,14 @@ def generate_pdf(
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(30, 30, 30)
 
-    # Strip markdown formatting for PDF
+    # Strip markdown and sanitize to latin-1 for fpdf2 built-in fonts
     import re
     clean = re.sub(r"\*\*(.*?)\*\*", r"\1", report_text)
-    clean = re.sub(r"\*(.*?)\*",   r"\1", clean)
-    clean = re.sub(r"#{1,3}\s*",   "",    clean)
-    clean = re.sub(r"─+",          "",    clean)
+    clean = re.sub(r"\*(.*?)\*",     r"\1", clean)
+    clean = re.sub(r"#{1,3}\s*",     "",    clean)
+    clean = re.sub(r"─+",            "",    clean)
+    clean = clean.replace("—", "-").replace("–", "-").replace("’", "'").replace("“", '"').replace("”", '"')
+    clean = clean.encode("latin-1", errors="replace").decode("latin-1")
     clean = clean.strip()
 
     pdf.multi_cell(0, 4.5, clean[:3000])
