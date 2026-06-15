@@ -302,7 +302,7 @@ main { padding-bottom: 80px; }
   border-radius: 16px;
   padding: 26px 28px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 28px;
   align-items: start;
 }
@@ -310,9 +310,9 @@ main { padding-bottom: 80px; }
   font-family: var(--serif); font-weight: 400; font-style: italic;
   font-size: 19px; line-height: 1.55;
   color: var(--paper);
-  max-width: 760px;
+  min-width: 0;
 }
-.signal-block { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 220px; }
+.signal-block { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 0; }
 .signal-chip {
   display: inline-flex; align-items: center; justify-content: center;
   font-family: var(--mono); font-weight: 700; font-size: 18px;

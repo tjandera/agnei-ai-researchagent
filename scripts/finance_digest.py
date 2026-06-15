@@ -523,7 +523,7 @@ def run_research(real: dict, topic: str, days: int, quick: bool, progress=None) 
 
     def _news():
         _emit({"type": "search_start", "tool": "yahoo_news", "query": sym})
-        items = get_stock_news(sym, limit=8)
+        items = get_stock_news(sym, limit=8, max_age_days=days)
         _emit({"type": "search_done", "tool": "yahoo_news",
                "query": sym, "count": len(items), "error": False})
         return ("news", items)
@@ -671,11 +671,88 @@ def build_digest(symbol: str, days: int = 30, topic: str = None, quick: bool = F
         "grounded": True,
         "fallback": fallback,
         "days": days,
+        "window": _build_window_report(days, research, history),
         "asset_type": real.get("asset_type", "EQUITY"),
         "elapsed_s": round(time.time() - started, 1),
     }
     emit({"type": "digest", "data": digest})
     return digest
+
+
+def _build_window_report(days: int, research: dict, history: list) -> dict:
+    """Honest accounting of what each source contributed within the window.
+
+    Lets the UI render badges like "5 articles from the past 7 days" so the
+    user can verify the brief actually reflects the timeframe they picked.
+    """
+    news = research.get("news") or []
+    web = research.get("web") or []
+    reddit = research.get("reddit") or []
+
+    # News is the only source that returns precise age_days per item.
+    news_with_age = [n for n in news if n.get("age_days") is not None]
+    if news_with_age:
+        newest = min(n["age_days"] for n in news_with_age)
+        oldest = max(n["age_days"] for n in news_with_age)
+    else:
+        newest = oldest = None
+
+    chart_days = len(history) if history else 0
+
+    return {
+        "requested_days": days,
+        "label": _window_label(days),
+        "news": {
+            "count": len(news),
+            "newest_age_days": round(newest, 2) if newest is not None else None,
+            "oldest_age_days": round(oldest, 2) if oldest is not None else None,
+            "source": "Yahoo Finance",
+            "filter": f"<= {days} days",
+        },
+        "web": {
+            "count": len(web),
+            "source": "Brave / Serper / Tavily",
+            "filter": _window_label(days),
+        },
+        "reddit": {
+            "count": len(reddit),
+            "source": "Reddit",
+            "filter": _reddit_filter_label(days),
+        },
+        "chart": {
+            "points": chart_days,
+            "source": "Yahoo Finance OHLCV",
+            "note": "Chart always loads >=90 days for context, independent of brief window",
+        },
+    }
+
+
+def _window_label(days: int) -> str:
+    if days <= 1:
+        return "past 24 hours"
+    if days <= 7:
+        return "past 7 days"
+    if days <= 14:
+        return "past 14 days"
+    if days <= 31:
+        return "past 30 days"
+    if days <= 92:
+        return "past 90 days"
+    if days <= 365:
+        return f"past {days} days"
+    return "past year"
+
+
+def _reddit_filter_label(days: int) -> str:
+    if days <= 1:
+        return "past day"
+    if days <= 7:
+        return "past week"
+    if days <= 30:
+        return "past month"
+    if days <= 365:
+        return "past year"
+    return "all time"
 
 
 def _watch_list(events: dict, real: dict) -> list:

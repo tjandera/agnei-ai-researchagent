@@ -62,11 +62,21 @@ def _relative_age(iso: Optional[str]) -> str:
     return f"{seconds // 86400}d ago"
 
 
-def get_stock_news(symbol: str, limit: int = 8) -> List[Dict[str, Any]]:
+def get_stock_news(
+    symbol: str,
+    limit: int = 8,
+    max_age_days: Optional[int] = None,
+) -> List[Dict[str, Any]]:
     """Fetch the latest news articles for a ticker.
 
-    Returns a list of dicts: {title, url, publisher, published_at, age, summary}.
-    Items missing a title or URL are dropped so the UI never renders a dead link.
+    Args:
+        symbol: Ticker.
+        limit: Max in-window items to return.
+        max_age_days: Drop articles older than this many days. None = no cap.
+
+    Returns a list of dicts: {title, url, publisher, published_at, age, summary,
+    age_days, in_window}. Items missing a title or URL are dropped so the UI
+    never renders a dead link.
     """
     if not symbol or not symbol.strip():
         return []
@@ -77,12 +87,13 @@ def get_stock_news(symbol: str, limit: int = 8) -> List[Dict[str, Any]]:
         except Exception:
             return []
 
+    now = datetime.now(timezone.utc)
+    # Pull a generous slice so the window filter still has options to choose from.
     out: List[Dict[str, Any]] = []
-    for item in raw[: max(limit * 2, limit)]:
+    for item in raw[: max(limit * 3, limit + 10)]:
         if not isinstance(item, dict):
             continue
 
-        # Newer yfinance wraps the article under 'content'; older versions are flat.
         body = item.get("content") if isinstance(item.get("content"), dict) else item
 
         title = (body.get("title") or "").strip()
@@ -107,6 +118,24 @@ def get_stock_news(symbol: str, limit: int = 8) -> List[Dict[str, Any]]:
             or body.get("providerPublishTime")
         )
 
+        # Compute exact age in days so the UI can verify the window honestly.
+        age_days: Optional[float] = None
+        if published_at:
+            try:
+                dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+                age_days = (now - dt).total_seconds() / 86400
+            except ValueError:
+                age_days = None
+
+        in_window = (
+            max_age_days is None
+            or age_days is None  # unknown age: keep, mark as not-verified
+            or age_days <= max_age_days
+        )
+        # Drop hard-out-of-window items so the synthesizer never sees them.
+        if max_age_days is not None and age_days is not None and age_days > max_age_days:
+            continue
+
         summary = (body.get("summary") or body.get("description") or "").strip()
 
         out.append({
@@ -115,6 +144,8 @@ def get_stock_news(symbol: str, limit: int = 8) -> List[Dict[str, Any]]:
             "publisher": publisher.strip(),
             "published_at": published_at,
             "age": _relative_age(published_at),
+            "age_days": round(age_days, 2) if age_days is not None else None,
+            "in_window": in_window,
             "summary": summary[:240],
         })
 

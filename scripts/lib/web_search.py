@@ -9,6 +9,7 @@ Priority order (uses whichever key is set first):
 
 import os
 import requests
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 
 BRAVE_URL  = "https://api.search.brave.com/res/v1/web/search"
@@ -26,17 +27,47 @@ def search_web(query: str, limit: int = 10, days: int = 30) -> List[Dict]:
     if brave_key:
         return _brave_search(query, limit, days, brave_key)
     if serper_key:
-        return _serper_search(query, limit, serper_key)
+        return _serper_search(query, limit, days, serper_key)
     if tavily_key:
-        return _tavily_search(query, limit, tavily_key)
+        return _tavily_search(query, limit, days, tavily_key)
     return []   # no key configured - caller treats empty list as "no results"
+
+
+def _brave_freshness(days: int) -> str:
+    """Brave accepts pd/pw/pm/py or a custom YYYY-MM-DDtoYYYY-MM-DD range.
+
+    The fixed shortcuts only cover day/week/month/year. For 14d, 30d, 90d we
+    use a custom range so the user actually gets results from the chosen
+    window instead of the next coarser bucket up.
+    """
+    if days <= 1:
+        return "pd"
+    if days <= 7:
+        return "pw"
+    # For everything else, ask for an explicit start-end window.
+    end = datetime.now(timezone.utc).date()
+    start = end - timedelta(days=days)
+    return f"{start.isoformat()}to{end.isoformat()}"
+
+
+def _serper_tbs(days: int) -> str:
+    """Serper / Google supports qdr:h/d/w/m/y or a custom cdr range."""
+    if days <= 1:
+        return "qdr:d"
+    if days <= 7:
+        return "qdr:w"
+    if days <= 31:
+        return "qdr:m"
+    if days <= 365:
+        # Custom date range: cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY
+        end = datetime.now(timezone.utc).date()
+        start = end - timedelta(days=days)
+        return f"cdr:1,cd_min:{start.strftime('%m/%d/%Y')},cd_max:{end.strftime('%m/%d/%Y')}"
+    return "qdr:y"
 
 
 def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]:
     """Brave Search API - 2,000 free queries/month."""
-    freshness_map = {1: "pd", 7: "pw", 31: "pm", 365: "py"}
-    freshness = next((v for k, v in freshness_map.items() if days <= k), "py")
-
     headers = {
         "Accept":              "application/json",
         "Accept-Encoding":     "gzip",
@@ -45,7 +76,7 @@ def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]
     params = {
         "q":           query,
         "count":       min(limit, 20),
-        "freshness":   freshness,
+        "freshness":   _brave_freshness(days),
         "search_lang": "en",
     }
     # Only add result_filter=web when not doing a site: search
@@ -80,13 +111,18 @@ def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]
     return results
 
 
-def _serper_search(query: str, limit: int, api_key: str) -> List[Dict]:
+def _serper_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]:
     """Serper.dev - Google results via API. 2,500 free queries on signup."""
     try:
         resp = requests.post(
             SERPER_URL,
             headers={"X-API-KEY": api_key, "Content-Type": "application/json"},
-            json={"q": query, "num": min(limit, 10), "gl": "us", "hl": "en"},
+            json={
+                "q": query,
+                "num": min(limit, 10),
+                "gl": "us", "hl": "en",
+                "tbs": _serper_tbs(days),
+            },
             timeout=12,
         )
         resp.raise_for_status()
@@ -110,7 +146,7 @@ def _serper_search(query: str, limit: int, api_key: str) -> List[Dict]:
     return results[:limit]
 
 
-def _tavily_search(query: str, limit: int, api_key: str) -> List[Dict]:
+def _tavily_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]:
     """Tavily - AI-tuned search. 1,000 free queries/month."""
     try:
         resp = requests.post(
@@ -121,6 +157,8 @@ def _tavily_search(query: str, limit: int, api_key: str) -> List[Dict]:
                 "max_results":  min(limit, 10),
                 "search_depth": "basic",
                 "include_answer": False,
+                # Tavily honours `days` directly for the time window.
+                "days": max(1, min(days, 365)),
             },
             timeout=15,
         )
