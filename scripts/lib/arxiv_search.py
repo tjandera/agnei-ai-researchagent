@@ -1,5 +1,5 @@
 """
-ArXiv search connector — free, no API key required.
+ArXiv search connector - free, no API key required.
 Returns academic papers and preprints.
 Best for: AI/ML research, science, technical deep-dives.
 """

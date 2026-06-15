@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Agnes Research — main orchestrator.
+Agnes Research - main orchestrator.
 
 Uses Agnes 2.0 Flash with tool calling to plan and execute research
 across Reddit, Hacker News, Polymarket, and the web. Synthesizes
@@ -65,7 +65,7 @@ RESEARCH_TOOLS = [
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query. Be specific — use exact product/person names where possible.",
+                        "description": "Search query. Be specific - use exact product/person names where possible.",
                     },
                     "limit": {
                         "type": "integer",
@@ -121,7 +121,7 @@ RESEARCH_TOOLS = [
             "description": (
                 "Search Polymarket prediction markets for relevant odds. "
                 "Returns markets with probability % and volume. "
-                "Best for quantified uncertainty — elections, releases, outcomes. "
+                "Best for quantified uncertainty - elections, releases, outcomes. "
                 "Real money = high-signal data."
             ),
             "parameters": {
@@ -245,31 +245,31 @@ RESEARCH STRATEGY:
 2. After collecting data, synthesize using these rules:
    - Weight by engagement: Reddit upvotes > HN points > web articles
    - Cross-platform signals (same story on Reddit + HN + Polymarket) = strongest evidence
-   - Quote top Reddit comments and HN takes directly — they're the signal
+   - Quote top Reddit comments and HN takes directly - they're the signal
    - Polymarket odds are hard evidence; cite the % and volume
-   - NEVER paste raw URLs — use site/publication names only
-   - Cite sparingly: "per @handle" or "per r/subreddit" — not chains
+   - NEVER paste raw URLs - use site/publication names only
+   - Cite sparingly: "per @handle" or "per r/subreddit" - not chains
 
 3. Output format:
 ```
 ## What I learned about {TOPIC}
 
-**{Finding 1}** — [1-2 sentences with data, per source]
-**{Finding 2}** — [1-2 sentences, per source]
-**{Finding 3}** — [1-2 sentences, per source]
+**{Finding 1}** - [1-2 sentences with data, per source]
+**{Finding 2}** - [1-2 sentences, per source]
+**{Finding 3}** - [1-2 sentences, per source]
 
 KEY PATTERNS:
-1. [Pattern] — per r/subreddit or HN
-2. [Pattern] — per source
-3. [Pattern] — per source
+1. [Pattern] - per r/subreddit or HN
+2. [Pattern] - per source
+3. [Pattern] - per source
 
 ---
-✅ Agnes research complete!
-├─ 🟠 Reddit: {N} threads │ {N} total upvotes
-├─ 🟡 HN: {N} stories │ {N} total points
-├─ 📊 Polymarket: {N} markets │ {top odds summary}
-├─ 🌐 Web: {N} pages — Source, Source, Source
-└─ 🗣️ Top signal: {highest-engagement finding}
+ Agnes research complete!
+├─  Reddit: {N} threads │ {N} total upvotes
+├─  HN: {N} stories │ {N} total points
+├─  Polymarket: {N} markets │ {top odds summary}
+├─  Web: {N} pages - Source, Source, Source
+└─  Top signal: {highest-engagement finding}
 ---
 ```
 
@@ -287,7 +287,7 @@ Rules:
 - Cross-platform signals are the strongest evidence
 - Quote the best Reddit/HN takes directly
 - Polymarket: cite specific % and volume
-- No raw URLs — use publication/site names only
+- No raw URLs - use publication/site names only
 - Cite sparingly: one source per pattern
 """
 
@@ -472,10 +472,10 @@ def run_research(
     year = datetime.now().year
     user_message = (
         f"Research this topic thoroughly: **{topic}**\n\n"
-        f"Today is {datetime.now().strftime('%B %d, %Y')}. Look back {days} days only — focus on recent content from {year}, not older years. "
+        f"Today is {datetime.now().strftime('%B %d, %Y')}. Look back {days} days only - focus on recent content from {year}, not older years. "
         f"{'Run quick searches with fewer results.' if quick else 'Run comprehensive searches.'}\n\n"
         f"Use all available tools. Run multiple query variations to get broad coverage. "
-        f"When adding a year to queries, use {year} — not any prior year. "
+        f"When adding a year to queries, use {year} - not any prior year. "
         f"Then synthesize everything into a grounded report following the output format in your instructions."
     )
 
@@ -502,7 +502,7 @@ def run_research(
     video_url = None
 
     if generate_image:
-        ui.print_status("Generating visual cover (Agnes Image 2.1 Flash)…")
+        ui.print_status("Generating visual cover (Agnes Image 2.1 Flash)...")
         image_prompt = (
             f"A sophisticated research intelligence brief cover for the topic '{topic}'. "
             "Dark editorial aesthetic, abstract data visualization, cinematic lighting, "
@@ -510,15 +510,15 @@ def run_research(
         )
         try:
             image_url = client.generate_image(image_prompt, size="1024x768")
-            report += f"\n\n📸 Visual Brief: {image_url}"
+            report += f"\n\n Visual Brief: {image_url}"
             ui.print_image_url(image_url)
         except Exception as e:
             msg = f"Image generation failed: {e}"
-            report += f"\n\n⚠️ {msg}"
+            report += f"\n\n {msg}"
             ui.print_error(msg)
 
     if generate_video and image_url:
-        ui.print_status("Generating animated brief (Agnes Video V2.0)…")
+        ui.print_status("Generating animated brief (Agnes Video V2.0)...")
         video_prompt = (
             f"Cinematic slow reveal of research intelligence findings about '{topic}'. "
             "Atmospheric, professional broadcast aesthetic, slow camera push-in, "
@@ -531,11 +531,11 @@ def run_research(
                 num_frames=121,
                 frame_rate=24,
             )
-            report += f"\n🎬 Animated Brief: {video_url}"
+            report += f"\n Animated Brief: {video_url}"
             ui.print_video_url(video_url)
         except Exception as e:
             msg = f"Video generation failed: {e}"
-            report += f"\n⚠️ {msg}"
+            report += f"\n {msg}"
             ui.print_error(msg)
 
     # Print the report through the TUI
@@ -561,9 +561,9 @@ def _save_report(content: str, topic: str, save_dir: str) -> None:
             f"_Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} · Model: Agnes 2.0 Flash_\n\n"
             + content
         )
-        print(f"\n💾 Report saved to: {filename}", file=sys.stderr)
+        print(f"\n Report saved to: {filename}", file=sys.stderr)
     except Exception as e:
-        print(f"\n⚠️ Could not save report: {e}", file=sys.stderr)
+        print(f"\n Could not save report: {e}", file=sys.stderr)
 
 
 # ------------------------------------------------------------------ #
@@ -572,7 +572,7 @@ def _save_report(content: str, topic: str, save_dir: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Agnes Research — deep topic research powered by Agnes AI",
+        description="Agnes Research - deep topic research powered by Agnes AI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -586,10 +586,10 @@ Examples:
     parser.add_argument("topic",     nargs="?",             help="Topic to research")
     parser.add_argument("--days",    type=int, default=30,  help="Look-back window in days (default: 30)")
     parser.add_argument("--quick",    action="store_true",   help="Fewer results, faster run")
-    parser.add_argument("--parallel", action="store_true",   help="Parallel mode — all searches run at once, ~2-3x faster")
+    parser.add_argument("--parallel", action="store_true",   help="Parallel mode - all searches run at once, ~2-3x faster")
     parser.add_argument("--image",    action="store_true",   help="Generate visual cover (Agnes Image 2.1 Flash)")
     parser.add_argument("--video",    action="store_true",   help="Generate animated brief (Agnes Video V2.0, requires --image)")
-    parser.add_argument("--agent",    action="store_true",   help="Agent mode — no interactive pauses, no TUI")
+    parser.add_argument("--agent",    action="store_true",   help="Agent mode - no interactive pauses, no TUI")
     parser.add_argument("--plain",    action="store_true",   help="Force plain text output (no rich formatting)")
     parser.add_argument("--emit",     default="full",        help="Output format: full | compact")
     parser.add_argument("--save-dir", default="~/Documents/AgnesResearch",
@@ -605,7 +605,7 @@ Examples:
             sys.exit(1)
 
     if not os.environ.get("AGNES_API_KEY"):
-        print("❌ AGNES_API_KEY is not set.", file=sys.stderr)
+        print(" AGNES_API_KEY is not set.", file=sys.stderr)
         print("   Export it: export AGNES_API_KEY=your_key_here", file=sys.stderr)
         sys.exit(1)
 

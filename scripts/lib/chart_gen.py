@@ -1,6 +1,6 @@
 """
 Price chart generator using matplotlib (dark terminal aesthetic).
-Returns PNG bytes — used for PDF embedding.
+Returns PNG bytes - used for PDF embedding.
 """
 
 import io

@@ -4,7 +4,7 @@ Rich terminal UI for Agnes Research.
 Auto-activated when stdout is a TTY (interactive terminal).
 Falls back gracefully when piped or in --agent mode.
 
-Usage (internal — called by agnes_research.py):
+Usage (internal - called by agnes_research.py):
     from tui import ResearchUI
     ui = ResearchUI(topic="AI coding tools", days=30)
     ui.start()
@@ -48,17 +48,17 @@ BANNER = (
 )
 
 SOURCE_META: Dict[str, Tuple[str, str, str]] = {
-    # tool_name  → (icon, label, color)
-    "search_reddit":     ("🟠", "Reddit",       "orange1"),
-    "search_hackernews": ("🟡", "Hacker News",  "yellow"),
-    "search_polymarket": ("📊", "Polymarket",   "cyan"),
-    "search_web":        ("🌐", "Web",          "blue"),
-    "search_github":     ("🐙", "GitHub",       "white"),
-    "search_devto":      ("👩‍💻", "Dev.to",       "magenta"),
-    "search_arxiv":      ("📄", "ArXiv",        "green"),
+    # tool_name  -> (icon, label, color)
+    "search_reddit":     ("", "Reddit",       "orange1"),
+    "search_hackernews": ("", "Hacker News",  "yellow"),
+    "search_polymarket": ("", "Polymarket",   "cyan"),
+    "search_web":        ("", "Web",          "blue"),
+    "search_github":     ("", "GitHub",       "white"),
+    "search_devto":      ("", "Dev.to",       "magenta"),
+    "search_arxiv":      ("", "ArXiv",        "green"),
 }
 
-STATUS_SEARCHING = "searching…"
+STATUS_SEARCHING = "searching..."
 STATUS_DONE      = "done"
 STATUS_ERROR     = "error"
 
@@ -87,10 +87,10 @@ class _SearchEntry:
     def render_status(self) -> str:
         if self.status == STATUS_DONE:
             if self.count == 0:
-                return "[dim]— no results[/dim]"
-            return f"[bold green]✓[/bold green] [green]{self.count} result{'s' if self.count != 1 else ''}[/green]"
+                return "[dim]- no results[/dim]"
+            return f"[bold green]OK[/bold green] [green]{self.count} result{'s' if self.count != 1 else ''}[/green]"
         if self.status == STATUS_ERROR:
-            return "[bold red]✗ error[/bold red]"
+            return "[bold red]x error[/bold red]"
         return f"[yellow dim]{STATUS_SEARCHING}[/yellow dim] [dim]{self.elapsed}[/dim]"
 
 
@@ -102,7 +102,7 @@ class _SourceTracker:
         self._lock = threading.Lock()
 
     def add(self, tool: str, query: str) -> int:
-        icon, label, color = SOURCE_META.get(tool, ("🔍", tool, "white"))
+        icon, label, color = SOURCE_META.get(tool, ("", tool, "white"))
         entry = _SearchEntry(icon, label, color, query)
         with self._lock:
             self._entries.append(entry)
@@ -210,7 +210,7 @@ class ResearchUI:
             )
             self._live.__enter__()
         else:
-            print(f"\n🔍 Agnes Research: {self.topic}", flush=True)
+            print(f"\n Agnes Research: {self.topic}", flush=True)
             print(f"   Look-back: {self.days} days · Model: {self.model}\n", flush=True)
 
     def stop_live(self):
@@ -226,7 +226,7 @@ class ResearchUI:
 
     def _render_live(self):
         if self._tracker.is_empty:
-            return Text("  Initializing Agnes 2.0 Flash orchestrator…", style="dim italic")
+            return Text("  Initializing Agnes 2.0 Flash orchestrator...", style="dim italic")
         return self._tracker.render()
 
     def _refresh(self):
@@ -240,7 +240,7 @@ class ResearchUI:
         query = args.get("query", "")
         idx = self._tracker.add(tool, query)
         if not self._use_rich:
-            icon, label, _ = SOURCE_META.get(tool, ("🔍", tool, ""))
+            icon, label, _ = SOURCE_META.get(tool, ("", tool, ""))
             print(f"  {icon} Searching {label}: {query[:60]}", flush=True)
         self._refresh()
         return idx
@@ -281,7 +281,7 @@ class ResearchUI:
             )
         else:
             print(report, flush=True)
-            print(f"\n✅ Completed in {elapsed:.0f}s", flush=True)
+            print(f"\n Completed in {elapsed:.0f}s", flush=True)
 
     def print_status(self, msg: str):
         """Print a one-line status update (outside the live area)."""
@@ -292,33 +292,33 @@ class ResearchUI:
 
     def print_error(self, msg: str):
         if self._use_rich and self._console:
-            self._console.print(f"[bold red]✗[/bold red] {msg}")
+            self._console.print(f"[bold red]x[/bold red] {msg}")
         else:
-            print(f"✗ {msg}", file=sys.stderr, flush=True)
+            print(f"x {msg}", file=sys.stderr, flush=True)
 
     def print_image_url(self, url: str):
         if self._use_rich and self._console:
             self._console.print(
                 Panel(
-                    f"[bold]📸 Visual Brief[/bold]\n[link={url}]{url}[/link]",
+                    f"[bold] Visual Brief[/bold]\n[link={url}]{url}[/link]",
                     border_style="magenta",
                     padding=(0, 2),
                 )
             )
         else:
-            print(f"\n📸 Visual Brief: {url}", flush=True)
+            print(f"\n Visual Brief: {url}", flush=True)
 
     def print_video_url(self, url: str):
         if self._use_rich and self._console:
             self._console.print(
                 Panel(
-                    f"[bold]🎬 Animated Brief[/bold]\n[link={url}]{url}[/link]",
+                    f"[bold] Animated Brief[/bold]\n[link={url}]{url}[/link]",
                     border_style="blue",
                     padding=(0, 2),
                 )
             )
         else:
-            print(f"🎬 Animated Brief: {url}", flush=True)
+            print(f" Animated Brief: {url}", flush=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -334,33 +334,33 @@ class PlainUI:
         self._start = time.time()
 
     def start(self):
-        print(f"\n🔍 Agnes Research: {self.topic}", flush=True)
+        print(f"\n Agnes Research: {self.topic}", flush=True)
         print(f"   Look-back: {self.days} days · Model: Agnes 2.0 Flash\n", flush=True)
 
     def stop_live(self): pass
 
     def wrap_executor(self, executor):
         def _plain(name, args):
-            icon, label, _ = SOURCE_META.get(name, ("🔍", name, ""))
+            icon, label, _ = SOURCE_META.get(name, ("", name, ""))
             print(f"  {icon} {label}: {args.get('query','')}", flush=True)
             result = executor(name, args)
             try:
                 count = len(json.loads(result))
             except Exception:
                 count = 0
-            print(f"       → {count} results", flush=True)
+            print(f"       -> {count} results", flush=True)
             return result
         return _plain
 
     def print_report(self, report: str):
         elapsed = time.time() - self._start
         print(report, flush=True)
-        print(f"\n✅ Done in {elapsed:.0f}s", flush=True)
+        print(f"\n Done in {elapsed:.0f}s", flush=True)
 
     def print_status(self, msg: str):    print(f"  {msg}", flush=True)
-    def print_error(self, msg: str):     print(f"✗ {msg}", file=sys.stderr, flush=True)
-    def print_image_url(self, url: str): print(f"\n📸 Visual Brief: {url}", flush=True)
-    def print_video_url(self, url: str): print(f"🎬 Animated Brief: {url}", flush=True)
+    def print_error(self, msg: str):     print(f"x {msg}", file=sys.stderr, flush=True)
+    def print_image_url(self, url: str): print(f"\n Visual Brief: {url}", flush=True)
+    def print_video_url(self, url: str): print(f" Animated Brief: {url}", flush=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

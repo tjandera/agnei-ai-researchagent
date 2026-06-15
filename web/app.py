@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Agnes Finance Research — web backend."""
+"""Agnes Finance Research - web backend."""
 
 import asyncio
-import base64
 import json
 import os
 import queue
+import re
 import sys
 import threading
-import time
 from pathlib import Path
 
 _env_path = Path(__file__).parent.parent / ".env"
@@ -23,26 +22,40 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from agnes_research import run_research, run_parallel_research
-from lib.yahoo_finance import get_ticker_data, search_tickers, fmt_large
+from finance_digest import build_digest
+from lib.yahoo_finance import get_ticker_data, search_tickers
+
+STATIC_DIR = Path(__file__).parent / "static"
+DEMO_DIR = STATIC_DIR / "demo"
 
 app = FastAPI(title="Agnes Finance Research")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+def _make_client():
+    """Construct an AgnesClient if a key is present in this process, else None."""
+    if not os.environ.get("AGNES_API_KEY"):
+        return None
+    try:
+        from lib.agnes_client import AgnesClient
+        return AgnesClient()
+    except Exception:
+        return None
 
 
 @app.get("/")
 def index():
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/api/health")
 def health():
     has_agnes = bool(os.environ.get("AGNES_API_KEY"))
-    web_key   = next((k for k in ["BRAVE_API_KEY", "SERPER_API_KEY", "TAVILY_API_KEY"] if os.environ.get(k)), None)
+    web_key = next((k for k in ["BRAVE_API_KEY", "SERPER_API_KEY", "TAVILY_API_KEY"] if os.environ.get(k)), None)
     return {"agnes": has_agnes, "web_search": web_key or False}
 
 
@@ -50,8 +63,7 @@ def health():
 def ticker(symbol: str, days: int = 90):
     """Return price, fundamentals, and historical OHLCV for a ticker."""
     try:
-        data = get_ticker_data(symbol, days=days)
-        return data
+        return get_ticker_data(symbol, days=days)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -60,10 +72,9 @@ def ticker(symbol: str, days: int = 90):
 def ticker_chart(symbol: str, days: int = 90):
     """Return a PNG price chart for embedding."""
     try:
-        from lib.yahoo_finance import get_ticker_data
         from lib.chart_gen import generate_price_chart
         data = get_ticker_data(symbol, days=days)
-        png  = generate_price_chart(data["history"], symbol, data.get("name", ""))
+        png = generate_price_chart(data["history"], symbol, data.get("name", ""))
         return Response(content=png, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -75,111 +86,46 @@ def ticker_search(q: str):
     return search_tickers(q)
 
 
-@app.get("/api/export/pdf")
-def export_pdf(symbol: str, report: str = "", days: int = 90):
-    """Generate and return a PDF finance report."""
-    try:
-        from lib.yahoo_finance import get_ticker_data
-        from lib.chart_gen import generate_price_chart
-        from lib.pdf_report import generate_pdf
+# -- Digest stream (SSE) --------------------------------------------------------
 
-        data      = get_ticker_data(symbol, days=days)
-        chart_png = None
-        try:
-            chart_png = generate_price_chart(data["history"], symbol, data.get("name", ""))
-        except Exception:
-            pass
-
-        pdf_bytes = generate_pdf(symbol, data, report, chart_png)
-        filename  = f"agnes-{symbol.lower()}-{time.strftime('%Y%m%d')}.pdf"
-        return Response(
-            content=bytes(pdf_bytes),
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ── SSE research stream ───────────────────────────────────────────────────────
-
-class _QueueUI:
-    def __init__(self, topic: str, days: int, q: queue.Queue):
-        self._q     = q
-        self._start = time.time()
-        self.topic  = topic
-        self.days   = days
-
-    def start(self):
-        self._q.put({"type": "start", "topic": self.topic, "days": self.days})
-
-    def stop_live(self):
-        pass
-
-    def wrap_executor(self, executor):
-        q = self._q
-        def _tracked(name: str, args: dict) -> str:
-            query = args.get("query", "")
-            q.put({"type": "search_start", "tool": name, "query": query})
-            result = executor(name, args)
-            try:
-                data = json.loads(result)
-                count = len(data) if isinstance(data, list) else (0 if isinstance(data, dict) and "error" in data else 1)
-                error = isinstance(data, dict) and "error" in data
-            except Exception:
-                count, error = 0, True
-            q.put({"type": "search_done", "tool": name, "query": query, "count": count, "error": error})
-            return result
-        return _tracked
-
-    def print_report(self, report: str):
-        self._q.put({"type": "report", "content": report, "elapsed": round(time.time() - self._start, 1)})
-
-    def print_status(self, msg: str):
-        self._q.put({"type": "status", "message": msg})
-
-    def print_error(self, msg: str):
-        self._q.put({"type": "error", "message": msg})
-
-    def print_image_url(self, url: str):
-        self._q.put({"type": "image", "url": url})
-
-    def print_video_url(self, url: str):
-        self._q.put({"type": "video", "url": url})
-
-
-@app.get("/api/research")
-async def research_stream(
-    topic: str,
+@app.get("/api/generate")
+async def generate_stream(
+    symbol: str,
     days: int = 30,
+    topic: str = None,
     quick: bool = False,
-    parallel: bool = True,
+    media: bool = True,
 ):
+    """Stream a grounded finance digest build as Server-Sent Events."""
     event_queue: queue.Queue = queue.Queue()
+    client = _make_client()
+
+    def _cb(ev: dict):
+        event_queue.put(ev)
 
     def _run():
         try:
-            ui = _QueueUI(topic, days, event_queue)
-            fn = run_parallel_research if parallel else run_research
-            fn(topic=topic, days=days, quick=quick,
-               save_dir="~/Documents/AgnesResearch", ui=ui)
+            build_digest(symbol, days=days, topic=topic, quick=quick,
+                         want_media=media, client=client, progress=_cb)
         except Exception as exc:
-            event_queue.put({"type": "error", "message": str(exc)})
+            event_queue.put({"type": "error", "message": str(exc), "fatal": True})
         finally:
             event_queue.put(None)
 
     threading.Thread(target=_run, daemon=True).start()
 
     async def _stream():
+        yield "data: " + json.dumps({"type": "start", "symbol": symbol, "days": days, "topic": topic}) + "\n\n"
         while True:
             try:
                 event = event_queue.get_nowait()
-                if event is None:
-                    yield "data: " + json.dumps({"type": "done"}) + "\n\n"
-                    break
-                yield "data: " + json.dumps(event) + "\n\n"
             except queue.Empty:
                 await asyncio.sleep(0.05)
+                continue
+            if event is None:
+                yield "data: " + json.dumps({"type": "done"}) + "\n\n"
+                break
+            yield "data: " + json.dumps(event) + "\n\n"
 
     return StreamingResponse(
         _stream(),
@@ -188,9 +134,65 @@ async def research_stream(
     )
 
 
+# -- Demo (cached assets, no live call) -----------------------------------------
+
+def _safe_key(key: str) -> str:
+    return re.sub(r"[^a-z0-9-]", "", (key or "").lower())
+
+
+@app.get("/api/demo")
+def demo_index():
+    """List cached demo digests, or an empty list if none exist."""
+    path = DEMO_DIR / "index.json"
+    if not path.exists():
+        return []
+    try:
+        return JSONResponse(content=json.loads(path.read_text()))
+    except Exception:
+        return []
+
+
+@app.get("/api/demo/{key}")
+def demo_get(key: str):
+    """Return a single cached demo digest by key."""
+    safe = _safe_key(key)
+    path = DEMO_DIR / f"{safe}.json"
+    if not safe or not path.exists():
+        raise HTTPException(status_code=404, detail="demo not found")
+    try:
+        return JSONResponse(content=json.loads(path.read_text()))
+    except Exception:
+        raise HTTPException(status_code=404, detail="demo not found")
+
+
+@app.post("/api/demo/build")
+def demo_build(symbol: str, days: int = 30, key: str = None):
+    """Run an in-app live build and cache it as a demo asset. Best effort."""
+    safe = _safe_key(key) if key else _safe_key(symbol)
+    client = _make_client()
+    DEMO_DIR.mkdir(parents=True, exist_ok=True)
+
+    try:
+        import cache_demo
+        if hasattr(cache_demo, "build_and_cache"):
+            result = cache_demo.build_and_cache(symbol, days, key=safe, client=client, with_media=True)
+            return {"status": "ok", "key": safe, "cached": True, "detail": result if isinstance(result, (str, dict)) else None}
+    except Exception:
+        pass
+
+    try:
+        digest = build_digest(symbol, days=days, want_media=True, client=client)
+        (DEMO_DIR / f"{safe}.json").write_text(json.dumps(digest, ensure_ascii=False))
+        return {"status": "ok", "key": safe, "cached": True,
+                "live": bool(digest.get("meta", {}).get("live"))}
+    except Exception as e:
+        return {"status": "error", "key": safe, "cached": False, "message": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
-    import webbrowser
-    print("\n  Agnes Finance Research → http://localhost:8765\n")
-    webbrowser.open("http://localhost:8765")
+    try:
+        sys.stderr.write("Agnes Finance Research on http://localhost:8765\n")
+    except Exception:
+        pass
     uvicorn.run(app, host="0.0.0.0", port=8765, log_level="warning")

@@ -1,11 +1,34 @@
 """
-Yahoo Finance connector — free, no API key required.
+Yahoo Finance connector - free, no API key required.
 Provides live prices, fundamentals, and historical OHLCV data.
 """
+
+import io
+import logging
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 
 import yfinance as yf
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
+
+# yfinance logs delisted/404 warnings on its own logger (e.g. "possibly
+# delisted; no price data found"). Silence them so a missing ticker stays quiet
+# on stdout/stderr. Level filtering only drops log records; it never affects
+# raised exceptions.
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
+
+@contextmanager
+def _silence_streams():
+    """Redirect any stray stdout/stderr (e.g. yfinance's printed HTTP errors)
+    to a throwaway buffer.
+
+    Only printed text is swallowed; exceptions raised inside the block
+    propagate normally, so real failures are never hidden.
+    """
+    sink = io.StringIO()
+    with redirect_stdout(sink), redirect_stderr(sink):
+        yield
 
 
 def get_ticker_data(symbol: str, days: int = 90) -> Dict[str, Any]:
@@ -14,18 +37,21 @@ def get_ticker_data(symbol: str, days: int = 90) -> Dict[str, Any]:
 
     Returns price, fundamentals, historical data, and analyst info.
     """
+    if not symbol or not symbol.strip():
+        raise ValueError("ticker symbol is required")
+
     t = yf.Ticker(symbol.upper())
-
-    try:
-        info = t.info
-    except Exception:
-        info = {}
-
     period = f"{min(days, 365)}d"
-    try:
-        hist = t.history(period=period)
-    except Exception:
-        hist = None
+
+    with _silence_streams():
+        try:
+            info = t.info
+        except Exception:
+            info = {}
+        try:
+            hist = t.history(period=period)
+        except Exception:
+            hist = None
 
     history = []
     if hist is not None and not hist.empty:

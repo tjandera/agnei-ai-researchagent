@@ -2,9 +2,9 @@
 Web search connector.
 
 Priority order (uses whichever key is set first):
-  1. Brave Search  — BRAVE_API_KEY   — brave.com/search/api  (2,000/month free)
-  2. Serper.dev    — SERPER_API_KEY  — serper.dev            (2,500 free on signup, no card)
-  3. Tavily        — TAVILY_API_KEY  — tavily.com            (1,000/month free, AI-tuned)
+  1. Brave Search  - BRAVE_API_KEY   - brave.com/search/api  (2,000/month free)
+  2. Serper.dev    - SERPER_API_KEY  - serper.dev            (2,500 free on signup, no card)
+  3. Tavily        - TAVILY_API_KEY  - tavily.com            (1,000/month free, AI-tuned)
 """
 
 import os
@@ -29,11 +29,11 @@ def search_web(query: str, limit: int = 10, days: int = 30) -> List[Dict]:
         return _serper_search(query, limit, serper_key)
     if tavily_key:
         return _tavily_search(query, limit, tavily_key)
-    return []   # no key configured — caller treats empty list as "no results"
+    return []   # no key configured - caller treats empty list as "no results"
 
 
 def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]:
-    """Brave Search API — 2,000 free queries/month."""
+    """Brave Search API - 2,000 free queries/month."""
     freshness_map = {1: "pd", 7: "pw", 31: "pm", 365: "py"}
     freshness = next((v for k, v in freshness_map.items() if days <= k), "py")
 
@@ -81,7 +81,7 @@ def _brave_search(query: str, limit: int, days: int, api_key: str) -> List[Dict]
 
 
 def _serper_search(query: str, limit: int, api_key: str) -> List[Dict]:
-    """Serper.dev — Google results via API. 2,500 free queries on signup."""
+    """Serper.dev - Google results via API. 2,500 free queries on signup."""
     try:
         resp = requests.post(
             SERPER_URL,
@@ -111,7 +111,7 @@ def _serper_search(query: str, limit: int, api_key: str) -> List[Dict]:
 
 
 def _tavily_search(query: str, limit: int, api_key: str) -> List[Dict]:
-    """Tavily — AI-tuned search. 1,000 free queries/month."""
+    """Tavily - AI-tuned search. 1,000 free queries/month."""
     try:
         resp = requests.post(
             TAVILY_URL,

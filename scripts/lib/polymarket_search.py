@@ -1,5 +1,5 @@
 """
-Polymarket search via Gamma API — no auth required, free.
+Polymarket search via Gamma API - no auth required, free.
 Returns prediction markets with odds and volume.
 """
 
@@ -21,7 +21,7 @@ def search_polymarket(query: str, limit: int = 8) -> List[Dict]:
         List of market dicts with keys:
           question, probability, volume_usd, category, end_date, url
     """
-    # Fetch a large batch and filter client-side — the API's `q` param
+    # Fetch a large batch and filter client-side - the API's `q` param
     # does not reliably filter by topic, so we pull top markets by volume
     # and keyword-match locally.
     query_words = set(re.sub(r"[^\w\s]", "", query.lower()).split())
@@ -30,7 +30,7 @@ def search_polymarket(query: str, limit: int = 8) -> List[Dict]:
 
     params = {
         "active":    "true",
-        "closed":    "true",
+        "closed":    "false",
         "limit":     200,
         "order":     "volume",
         "ascending": "false",

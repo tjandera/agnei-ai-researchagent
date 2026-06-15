@@ -1,186 +1,163 @@
-# Agnes Research Skill
+# Agnes Finance Research
 
-Deep topic research across Reddit, Hacker News, Polymarket, and the web — orchestrated and synthesized by **Agnes 2.0 Flash** with Thinking mode. Optionally generates a visual report cover and animated brief via Agnes Image 2.1 Flash and Agnes Video V2.0.
+A grounded, tri-modal finance digest for a single stock, ETF, or crypto symbol.
+You enter a ticker and the app returns one coherent briefing in three forms:
+structured data, designed cards, and a pair of generated visuals.
 
-Adapted from [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) (MIT) — same architecture, same connectors, Agnes AI as the AI layer.
+1. Structured JSON: a headline, a price snapshot with key levels, three to five
+   themes with per theme sentiment, prediction markets, community sentiment, and
+   source citations.
+2. Designed cards: the same digest rendered as a clean HTML page with a price
+   chart, served from the built in web app. There is no PDF.
+3. Media: one abstract hero image and a short silent recap video that set the
+   mood for the asset.
 
----
+Every number you see comes from live market data (yfinance) and the chart. The
+image and video models are never asked to draw text, numbers, tickers, or
+readable charts. They produce atmosphere only.
 
-## Terminal Preview
-
-```
-  Agnes Research  v1.0 · powered by Agnes 2.0 Flash
-
-  Topic   AI coding assistants
-  Window  30 days  ·  Sources  Reddit · HN · Polymarket · Web
-
- ──────────────────────────────────────────────────────────
-   Source         Query                              Status
- ──────────────────────────────────────────────────────────
-  🟠  Reddit       AI coding assistants               ✓ 18 results
-  🟡  Hacker News  AI coding tools 2025               ✓ 12 results
-  📊  Polymarket   AI developer tools                 ✓ 3 results
-  🌐  Web          best AI coding assistant 2025       ✓ 9 results
-  🟠  Reddit       Cursor vs Copilot vs Cody           ✓ 14 results
-  🟡  Hacker News  AI pair programming                ✓ 8 results
- ──────────────────────────────────────────────────────────
-
- ─────────────────────────────────────────────────────────
- ## What I learned about AI coding assistants
- ...
-```
+The product works with no API key at all. When the Agnes key is absent it builds
+the exact same grounded digest using a deterministic offline synthesis and a
+locally drawn poster for the hero visual.
 
 ---
 
-## Quick Start
+## Setup
 
 ```bash
-# 1. Clone
-git clone https://github.com/YOUR_USERNAME/agnes-research-skill
-cd agnes-research-skill
-
-# 2. Create a virtual environment and install dependencies
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
 
-# 3. Add your Agnes AI key to .env
+---
+
+## Running the web app
+
+```bash
+python web/app.py
+```
+
+Then open http://localhost:8765 in your browser. Enter a symbol such as `AAPL`,
+`BTC-USD`, or `NVDA` and the digest streams in as it is built: the price
+snapshot first, then research, then the synthesized themes, then the hero image
+and recap video when a key is present.
+
+---
+
+## Environment variables
+
+Copy the template and fill in what you have:
+
+```bash
 cp .env.example .env
-# then open .env and replace your_key_here with your actual key
-
-# 4. Run
-python3 scripts/agnes_research.py "AI coding assistants"
 ```
 
----
-
-## Terminal Setup (run from anywhere)
-
-Add an alias to your shell so you can call `agnes` from any directory:
-
-```bash
-# Open your shell config
-open ~/.zshrc
-```
-
-Add this line (update the path if you cloned somewhere else):
-
-```bash
-alias agnes='AGNES_PROJECT=~/Documents/agnei-ai-researchagent && source "$AGNES_PROJECT/.venv/bin/activate" && python3 "$AGNES_PROJECT/scripts/agnes_research.py"'
-```
-
-Save the file, then reload:
-
-```bash
-source ~/.zshrc
-```
-
-Now you can run research from anywhere:
-
-```bash
-agnes "AI coding assistants"
-agnes "OpenAI vs Anthropic" --days=7 --quick
-agnes "crypto defi" --image
-```
-
----
-
-## Usage
-
-```bash
-# Basic research (30-day window, rich terminal UI)
-python scripts/agnes_research.py "topic here"
-
-# Shorter window, faster
-python scripts/agnes_research.py "topic" --days=7 --quick
-
-# Generate visual cover + animated brief
-python scripts/agnes_research.py "topic" --image --video
-
-# Plain output (no rich formatting)
-python scripts/agnes_research.py "topic" --plain
-
-# Agent mode (no TUI, machine-readable, pipe-friendly)
-python scripts/agnes_research.py "topic" --agent
-
-# Pipe a topic from stdin
-echo "typescript vs rust" | python scripts/agnes_research.py --agent
-
-# Save report to a custom directory
-python scripts/agnes_research.py "topic" --save-dir=~/Desktop/research
-```
-
----
-
-## Environment Variables
-
-| Variable | Required | Description |
+| Variable | Required | Purpose |
 |---|---|---|
-| `AGNES_API_KEY` | **Yes** | Agnes AI API key from [apihub.agnes-ai.com](https://apihub.agnes-ai.com) |
-| `BRAVE_API_KEY` | No | [Brave Search](https://brave.com/search/api/) — better web results (2,000 free/month) |
-| `SCRAPECREATORS_API_KEY` | No | X/TikTok/Instagram connector |
+| `AGNES_API_KEY` | Yes for live mode | Prerequisite for live synthesis, the hero image, and the recap video. Without it the app still runs with grounded offline synthesis and a locally drawn poster. |
+| `BRAVE_API_KEY` | Optional | Improves web and Reddit results. Falls back to keyless sources when empty. |
+
+The web app reads `.env` from the project root on startup. The key is injected
+only into the running app process.
+
+---
+
+## Demo mode
+
+Three digests ship pre built and cached so the product is instant with no live
+API call:
+
+- `BTC-USD` over 30 days
+- `AAPL` over 90 days
+- `ETH-USD` over 30 days
+
+They live in `web/static/demo/` as `<key>.json` (the full digest) and
+`<key>.png` (the locally drawn poster), with `index.json` listing them. The UI
+reads `index.json` and shows one demo chip per seed. Clicking a chip loads the
+cached digest straight from disk through `/api/demo/{key}`, so it renders
+immediately and uses no quota.
+
+These seeds are grounded real data digests built offline. Rebuild them anytime:
+
+```bash
+.venv/bin/python scripts/cache_demo.py
+```
+
+That writes the three JSON digests, the three posters, and `index.json`. It runs
+fully offline with no key, which is expected.
+
+When a key is present in the running app, the live build route can regenerate a
+seed with real Agnes media (hero image plus recap video) and cache the result in
+the same `web/static/demo/` folder.
+
+---
+
+## A note on the visuals
+
+The hero image and recap video are mood pieces, never data. The prompts
+explicitly forbid text, words, numbers, tickers, logos, and readable charts. All
+figures in the digest are sourced from yfinance and drawn into the price chart,
+so nothing financial is ever hallucinated by an image or video model. The
+offline poster shows only the symbol and asset name as typographic labels and a
+trend up or trend down tag, never a price.
 
 ---
 
 ## Architecture
 
 ```
-agnes-research-skill/
-├── SKILL.md                      ← Claude skill definition
+agnei-ai-researchagent/
 ├── requirements.txt
+├── .env.example
+├── web/
+│   ├── app.py                 FastAPI app, SSE streaming, demo routes
+│   └── static/
+│       ├── index.html         Single page UI: input, chart, cards, media
+│       └── demo/              Cached seed digests, posters, and index.json
 └── scripts/
-    ├── agnes_research.py         ← Main orchestrator + CLI
-    ├── tui.py                    ← Rich terminal UI (auto-detects TTY)
+    ├── finance_digest.py      Orchestrator: build_digest end to end
+    ├── cache_demo.py          Builds and caches the demo seeds
     └── lib/
-        ├── agnes_client.py       ← Agnes AI wrapper (chat, image, video)
-        ├── reddit_search.py      ← Reddit public JSON API (free, no auth)
-        ├── hackernews_search.py  ← Algolia HN API (free, no auth)
-        ├── polymarket_search.py  ← Polymarket Gamma API (free, no auth)
-        └── web_search.py         ← Brave Search / DuckDuckGo fallback
+        ├── agnes_client.py    Agnes wrapper: chat, image, video
+        ├── media_gen.py       Hero image, recap video, offline poster
+        ├── yahoo_finance.py   Live prices, fundamentals, OHLCV history
+        ├── polymarket_search.py
+        ├── web_search.py
+        ├── reddit_search.py
+        ├── hackernews_search.py
+        └── chart_gen.py       PNG price chart for the cards
 ```
 
 ### How it works
 
-1. **Orchestration** — Agnes 2.0 Flash decides which sources to search and with what queries, using OpenAI-compatible tool calling.
-2. **Data collection** — Each tool call hits a real connector (Reddit, HN, Polymarket, web). All connectors are free and require no auth by default.
-3. **Synthesis** — Agnes 2.0 Flash with Thinking mode synthesizes all data into a grounded, cited brief.
-4. **Visuals** (optional) — Agnes Image 2.1 Flash generates a report cover; Agnes Video V2.0 generates an animated brief using the cover as a starting frame.
+1. Snapshot. `finance_digest.build_digest` pulls live market data for the symbol
+   from the `yahoo_finance` tool: price, daily change, 52 week range, volume, and
+   fundamentals.
+2. Research. It fans out in parallel across the Polymarket, web, Reddit, and
+   Hacker News connectors for odds, news, and community sentiment.
+3. Synthesis. With a key, Agnes synthesizes a structured JSON digest grounded in
+   the verified numbers. With no key, a deterministic offline synthesis produces
+   the same shape from the same real data. Real numbers always win over model
+   output.
+4. Media. With a key, Agnes generates one abstract hero image, then a short
+   silent recap video seeded by that image. With no key, a locally drawn poster
+   stands in. Media is best effort and never blocks the digest.
 
-### Agnes AI models used
+### Agnes models used
 
 | Model | Role |
 |---|---|
-| `agnes-2.0-flash` | Orchestrator + synthesizer (tool calling + Thinking mode) |
-| `agnes-image-2.1-flash` | Visual report cover generation (`--image`) |
-| `agnes-video-v2.0` | Animated brief generation (`--video`) |
+| `agnes-2.0-flash` | Synthesizer with Thinking mode |
+| `agnes-image-2.1-flash` | Abstract hero image |
+| `agnes-video-v2.0` | Short silent recap video |
 
----
+### Connectors
 
-## Connectors
-
-| Source | API | Auth |
-|---|---|---|
-| Reddit | `reddit.com/search.json` | None (public) |
-| Hacker News | Algolia HN API | None (public) |
-| Polymarket | Gamma API | None (public) |
-| Web | Brave Search API | `BRAVE_API_KEY` (or DDG fallback) |
-
----
-
-## Terminal UI
-
-The rich terminal UI auto-activates when stdout is a TTY. It shows:
-- A startup panel with topic, window, and model info
-- A live source table that updates as each search completes
-- The final report rendered as formatted markdown
-- Image and video URLs in styled panels
-
-Pass `--plain` to disable rich formatting, or `--agent` for fully machine-readable output.
-
-The UI degrades gracefully: if `rich` is not installed, it falls back to plain `print()` automatically.
-
----
-
-## License
-
-MIT — adapted from [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill).
+| Source | Auth |
+|---|---|
+| Yahoo Finance | None |
+| Polymarket | None |
+| Hacker News | None |
+| Reddit | None, better with `BRAVE_API_KEY` |
+| Web | `BRAVE_API_KEY` optional, keyless fallback |

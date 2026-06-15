@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agnes Research — interactive prompt. Run with: agnes"""
+"""Agnes Research - interactive prompt. Run with: agnes"""
 
 import json
 import os
@@ -60,7 +60,7 @@ def main():
 
         console.print()
         parallel = Confirm.ask(
-            "  Parallel mode? [dim](all searches run at once — ~2-3x faster)[/dim]",
+            "  Parallel mode? [dim](all searches run at once - ~2-3x faster)[/dim]",
             default=True,
         )
 

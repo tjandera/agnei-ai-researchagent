@@ -1,5 +1,5 @@
 """
-Dev.to search connector — free, no API key required.
+Dev.to search connector - free, no API key required.
 Returns developer blog posts and articles.
 Best for: programming, tools, tutorials, developer opinions.
 """
