@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ## Running the web app
 
 ```bash
-python web/app.py
+python web/app.py (do change the port number if it's already been used to a different number at web/app.py)
 ```
 
 Then open http://localhost:8765 in your browser. Enter a symbol such as `AAPL`,
