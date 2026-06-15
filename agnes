@@ -1,0 +1,115 @@
+#!/bin/bash
+# Agnes - unified launcher for Agnes Research
+#
+# Usage:
+#   agnes stock AAPL                      Stock brief: TL;DR + signal + news (terminal)
+#   agnes stock BTC-USD --days 7          Custom look-back window
+#   agnes stock NVDA --save ~/Documents   Also save the brief as Markdown
+#   agnes web                             Start the web app at http://localhost:3000
+#   agnes web --port 8080                 Custom port
+#   agnes "topic"                         (Legacy) topical research across HN/Reddit/web
+
+set -euo pipefail
+
+# Resolve the project root (the directory containing this script),
+# so the command works from any working directory.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON="$ROOT/.venv/bin/python"
+
+# ── Setup check ────────────────────────────────────────────────────────────────
+if [ ! -f "$PYTHON" ]; then
+    echo ""
+    echo "  Agnes is not set up yet. Run this once:"
+    echo ""
+    echo "    cd \"$ROOT\""
+    echo "    python3 -m venv .venv"
+    echo "    .venv/bin/pip install -r requirements.txt"
+    echo ""
+    exit 1
+fi
+
+# Auto-create .env from the example if it doesn't exist yet.
+if [ ! -f "$ROOT/.env" ]; then
+    cp "$ROOT/.env.example" "$ROOT/.env"
+    echo ""
+    echo "  Created .env from .env.example."
+    echo "  Add your AGNES_API_KEY to $ROOT/.env to enable live synthesis."
+    echo ""
+fi
+
+# ── Route commands ─────────────────────────────────────────────────────────────
+CMD="${1:-}"
+
+case "$CMD" in
+
+    stock)
+        shift || true
+        if [ $# -eq 0 ]; then
+            echo ""
+            echo "  Usage: agnes stock SYMBOL [--days N] [--quick] [--plain] [--save DIR]"
+            echo ""
+            echo "  Examples:"
+            echo "    agnes stock AAPL"
+            echo "    agnes stock BTC-USD --days 7"
+            echo "    agnes stock NVDA --save ~/Documents"
+            echo ""
+            exit 1
+        fi
+        exec "$PYTHON" "$ROOT/scripts/stock_cli.py" "$@"
+        ;;
+
+    web)
+        shift || true
+        # Parse an optional --port flag (supports both `--port 3000` and `--port=3000`).
+        PORT=3000
+        PASSTHROUGH=()
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --port=*)
+                    PORT="${1#--port=}"
+                    shift
+                    ;;
+                --port)
+                    PORT="${2:-$PORT}"
+                    shift 2 || shift
+                    ;;
+                *)
+                    PASSTHROUGH+=("$1")
+                    shift
+                    ;;
+            esac
+        done
+        echo ""
+        echo "  Agnes web  →  http://localhost:$PORT"
+        echo "  Press Ctrl+C to stop."
+        echo ""
+        exec "$PYTHON" "$ROOT/web/app.py" --port "$PORT" "${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}"
+        ;;
+
+    "" | -h | --help | help)
+        echo ""
+        echo "  Agnes — your stock, explained in plain English."
+        echo ""
+        echo "  Stock briefs (terminal):"
+        echo "    agnes stock AAPL                       TL;DR + signal + news for AAPL"
+        echo "    agnes stock BTC-USD --days 7           Custom look-back window"
+        echo "    agnes stock NVDA --quick               Faster mode (fewer searches)"
+        echo "    agnes stock TSLA --plain               No colors, no Rich UI"
+        echo "    agnes stock AAPL --save ~/Documents    Also save brief as Markdown"
+        echo ""
+        echo "  Web app:"
+        echo "    agnes web                              Open the web UI at localhost:3000"
+        echo "    agnes web --port 8080                  Custom port"
+        echo ""
+        echo "  Legacy (topical research, not a stock brief):"
+        echo "    agnes \"AI coding tools\"              Research any topic across Reddit/HN/etc."
+        echo ""
+        exit 0
+        ;;
+
+    *)
+        # Pass everything through to the research CLI.
+        exec "$PYTHON" "$ROOT/scripts/agnes_research.py" "$@"
+        ;;
+
+esac

@@ -3,40 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agnes / Finance Intelligence Digest</title>
+<title>Agnes / Stock Brief</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c0d10'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='%23f4b740'/%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --ink:        #0c0d10;   /* page base, near-black with warmth */
+  --ink:        #0c0d10;
   --ink2:       #121319;
   --panel:      #16171e;
   --panel2:     #1b1d26;
   --line:       #25262f;
   --line2:      #33343f;
-  --paper:      #ece6d8;   /* warm off-white for primary text */
+  --paper:      #ece6d8;
   --paper-dim:  #a7a293;
   --muted:      #6f6c63;
   --faint:      #4a4843;
 
-  --accent:     #f4b740;   /* the single restrained signal: warm gold */
+  --accent:     #f4b740;
   --accent-deep:#caa233;
   --accent-glow: rgba(244,183,64,.16);
 
-  --up:         #4fb286;   /* desaturated, intentional */
+  --up:         #4fb286;
   --up-soft:    rgba(79,178,134,.14);
   --down:       #d0635f;
   --down-soft:  rgba(208,99,95,.14);
   --amber:      #d9a441;
-  --neutral:    #8c8a82;
+  --amber-soft: rgba(217,164,65,.12);
+  --slate:      #8c8a82;
 
   --serif:  'Fraunces', Georgia, 'Times New Roman', serif;
   --sans:   'Spline Sans', system-ui, sans-serif;
   --mono:   'JetBrains Mono', ui-monospace, monospace;
 
-  --maxw: 1240px;
+  --maxw: 1180px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,7 +55,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Atmospheric background: warm vignette + faint grain + a single gold aura */
 body::before {
   content: "";
   position: fixed; inset: 0; z-index: -2;
@@ -78,7 +78,7 @@ body::after {
 .hidden { display: none !important; }
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
 
-/* ───────────────────────── Masthead ───────────────────────── */
+/* ─────────── Masthead ─────────── */
 .masthead {
   position: sticky; top: 0; z-index: 200;
   background: rgba(10,11,14,.82);
@@ -106,7 +106,6 @@ body::after {
   border-left: 1px solid var(--line2);
 }
 
-/* search controls */
 .controls { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 280px; flex-wrap: wrap; }
 .field {
   display: flex; align-items: center; gap: 8px;
@@ -120,18 +119,10 @@ body::after {
 .field-sym input {
   background: none; border: none; outline: none; color: var(--paper);
   font-family: var(--mono); font-weight: 500; font-size: 14px;
-  width: 92px; text-transform: uppercase; letter-spacing: .04em;
+  width: 100px; text-transform: uppercase; letter-spacing: .04em;
 }
 .field-sym input::placeholder { color: var(--faint); text-transform: none; letter-spacing: 0; }
-.field-topic { flex: 1; min-width: 150px; }
-.field-topic .sigil { color: var(--muted); font-family: var(--mono); font-size: 13px; }
-.field-topic input {
-  background: none; border: none; outline: none; color: var(--paper);
-  font-family: var(--sans); font-size: 14px; flex: 1; min-width: 60px;
-}
-.field-topic input::placeholder { color: var(--faint); }
 
-/* segmented window selector */
 .seg { display: inline-flex; background: var(--ink2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; }
 .seg button {
   background: none; border: none; cursor: pointer;
@@ -142,21 +133,6 @@ body::after {
 .seg button:hover { color: var(--paper-dim); }
 .seg button.on { background: var(--accent); color: #1a1407; font-weight: 700; }
 
-/* quick toggle */
-.switch { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
-.switch .track {
-  width: 38px; height: 21px; border-radius: 11px; background: var(--ink2);
-  border: 1px solid var(--line2); position: relative; transition: all .2s; flex-shrink: 0;
-}
-.switch .thumb {
-  position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%;
-  background: var(--muted); transition: all .2s;
-}
-.switch.on .track { background: var(--accent-glow); border-color: var(--accent); }
-.switch.on .thumb { left: 19px; background: var(--accent); }
-.switch .txt { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.switch.on .txt { color: var(--accent); }
-
 .run {
   display: inline-flex; align-items: center; gap: 9px;
   background: var(--accent); color: #1a1407;
@@ -166,7 +142,6 @@ body::after {
   transition: all .18s; white-space: nowrap; letter-spacing: .01em;
 }
 .run:hover:not(:disabled) { box-shadow: 0 6px 22px var(--accent-glow); transform: translateY(-1px); }
-.run:active:not(:disabled) { transform: translateY(0); }
 .run:disabled { opacity: .5; cursor: not-allowed; }
 .run .glyph { font-family: var(--mono); font-size: 11px; }
 
@@ -177,13 +152,12 @@ body::after {
 }
 .health .lamp {
   width: 7px; height: 7px; border-radius: 50%; background: var(--faint);
-  box-shadow: 0 0 0 0 transparent; transition: all .3s;
+  transition: all .3s;
 }
 .health .lamp.ok  { background: var(--up);  box-shadow: 0 0 8px var(--up); animation: breathe 2.6s ease-in-out infinite; }
 .health .lamp.bad { background: var(--down); box-shadow: 0 0 8px var(--down); }
 @keyframes breathe { 0%,100%{opacity:1} 50%{opacity:.45} }
 
-/* demos row */
 .demobar { border-top: 1px solid var(--line); background: rgba(12,13,16,.5); }
 .demobar-inner {
   max-width: var(--maxw); margin: 0 auto; padding: 9px 28px;
@@ -205,12 +179,12 @@ body::after {
 .demo-chip .dsym { color: var(--accent); font-weight: 700; }
 .demo-chip .dname { color: var(--muted); }
 
-/* ───────────────────────── Progress rail ───────────────────────── */
+/* ─────────── Progress rail ─────────── */
 .progress { border-bottom: 1px solid var(--line); background: rgba(18,19,25,.6); display: none; }
 .progress.show { display: block; }
 .progress-inner { max-width: var(--maxw); margin: 0 auto; padding: 16px 28px; }
 .stepper { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
-.step { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 140px; }
+.step { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 130px; }
 .step .bead {
   width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
   border: 1.5px solid var(--line2); background: var(--ink);
@@ -230,7 +204,6 @@ body::after {
 .step.done .bead .tick { display: block; }
 .step.done .bead .num { display: none; }
 
-/* live sources list */
 .live-sources { margin-top: 15px; display: grid; gap: 5px; }
 .src {
   display: flex; align-items: center; gap: 12px; padding: 6px 0;
@@ -254,68 +227,37 @@ body::after {
   display: flex; align-items: center; gap: 8px; min-height: 16px;
 }
 
-/* spinner ring */
 .ring { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--line2); border-top-color: var(--accent); display: inline-block; animation: spin .7s linear infinite; }
 .ring.sm { width: 10px; height: 10px; border-width: 1.5px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ───────────────────────── Hero band ───────────────────────── */
+/* ─────────── Hero ─────────── */
 main { padding-bottom: 80px; }
-.hero { padding: 46px 0 18px; }
+.hero { padding: 40px 0 12px; }
 .kicker {
   display: inline-flex; align-items: center; gap: 9px;
   font-family: var(--mono); font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 18px;
+  color: var(--accent); margin-bottom: 16px;
 }
 .kicker::before { content: ""; width: 26px; height: 1px; background: var(--accent); display: inline-block; }
-.hero-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 40px; align-items: end; }
 .headline {
-  font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 4.6vw, 56px);
+  font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4.2vw, 50px);
   line-height: 1.05; letter-spacing: -.018em; color: var(--paper);
+  max-width: 940px;
 }
 .headline .em { font-style: italic; color: var(--accent); }
 .byline {
-  margin-top: 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 .byline .pip { width: 4px; height: 4px; border-radius: 50%; background: var(--line2); }
 .byline .live-tag { color: var(--up); }
 .byline .fallback-tag { color: var(--amber); }
 
-/* recap video slot */
-.recap {
-  position: relative; border-radius: 14px; overflow: hidden;
-  border: 1px solid var(--line); background: var(--ink2);
-  aspect-ratio: 16 / 10; min-height: 200px;
-}
-.recap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.recap-tag {
-  position: absolute; top: 12px; left: 12px; z-index: 3;
-  font-family: var(--mono); font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--paper); background: rgba(10,11,14,.66); backdrop-filter: blur(6px);
-  padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line2);
-  display: flex; align-items: center; gap: 7px;
-}
-.recap-tag .rd { width: 6px; height: 6px; border-radius: 50%; background: var(--down); animation: breathe 1.8s infinite; }
-.placeholder {
-  position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
-  background:
-    radial-gradient(420px 280px at 30% 20%, var(--accent-glow), transparent 65%),
-    repeating-linear-gradient(135deg, rgba(255,255,255,.014) 0 2px, transparent 2px 16px),
-    linear-gradient(160deg, #15161d, #101117);
-}
-.placeholder .ph-inner { display: grid; gap: 9px; justify-items: center; }
-.placeholder .ph-glyph {
-  width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line2);
-  display: grid; place-items: center; color: var(--muted);
-  background: rgba(20,21,28,.6);
-}
-.placeholder .ph-txt { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-
-/* ───────────────────────── Ticker hero / readout ───────────────────────── */
-.section { padding: 30px 0; }
+/* ─────────── Sections ─────────── */
+.section { padding: 26px 0; }
 .section + .section { border-top: 1px solid var(--line); }
-.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
 .sec-title {
   font-family: var(--serif); font-weight: 500; font-size: 22px; letter-spacing: -.01em; color: var(--paper);
   display: flex; align-items: baseline; gap: 12px;
@@ -323,42 +265,177 @@ main { padding-bottom: 80px; }
 .sec-title .idx { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .1em; }
 .sec-note { font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
 
+/* ─────────── Snapshot ─────────── */
 .quote-band { display: grid; grid-template-columns: auto auto 1fr; gap: 34px; align-items: center; padding: 22px 26px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
 .quote-id .qsym { font-family: var(--mono); font-weight: 700; font-size: 30px; letter-spacing: .02em; color: var(--paper); }
 .quote-id .qname { font-size: 13px; color: var(--muted); margin-top: 3px; max-width: 220px; }
-.quote-px { text-align: left; }
 .quote-px .px { font-family: var(--mono); font-weight: 500; font-size: 38px; letter-spacing: -.01em; line-height: 1; color: var(--paper); }
 .quote-px .chg { font-family: var(--mono); font-size: 14px; margin-top: 7px; display: inline-flex; align-items: center; gap: 7px; }
 .chg.up   { color: var(--up); }
 .chg.down { color: var(--down); }
-.chg.flat { color: var(--neutral); }
+.chg.flat { color: var(--slate); }
 .chg .arw { font-size: 11px; }
 
-/* key levels */
-.levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
-.level { background: var(--panel); padding: 13px 16px; }
-.level .lk { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.level .lv { font-family: var(--mono); font-size: 17px; color: var(--paper); margin-top: 5px; }
-.level.hi .lv { color: var(--up); }
-.level.lo .lv { color: var(--down); }
-.level.res .lv { color: var(--amber); }
-.level.sup .lv { color: var(--accent); }
+.essentials { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ecell { background: var(--ink2); padding: 12px 16px; }
+.ecell .ek { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ecell .ev { font-family: var(--mono); font-size: 15px; color: var(--paper); margin-top: 4px; }
 
-/* compact metrics strip */
-.metrics-strip { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.mcell { background: var(--ink2); padding: 11px 14px; }
-.mcell .mk { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.mcell .mv { font-family: var(--mono); font-size: 14px; color: var(--paper-dim); margin-top: 4px; }
-
-/* ───────────────────────── Chart ───────────────────────── */
-.chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
-.summary-text {
-  background: var(--ink2); border: 1px solid var(--line); border-radius: 14px;
-  padding: 22px 24px; white-space: pre-wrap; word-break: break-word;
-  font-family: var(--mono); font-size: 12.5px; line-height: 1.8; color: var(--paper-dim);
+.details-toggle {
+  margin-top: 10px; background: none; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); padding: 6px 0;
 }
-.summary-text:empty { display: none; }
-.chart-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.details-toggle:hover { color: var(--paper-dim); }
+.details-grid {
+  display: none; margin-top: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+}
+.details-grid.open { display: grid; }
+.details-grid .ecell { background: var(--ink); }
+
+/* ─────────── TL;DR + action ─────────── */
+.tldr-card {
+  background: linear-gradient(180deg, var(--panel), var(--ink2));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 28px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  align-items: start;
+}
+.tldr-text {
+  font-family: var(--serif); font-weight: 400; font-style: italic;
+  font-size: 19px; line-height: 1.55;
+  color: var(--paper);
+  max-width: 760px;
+}
+.signal-block { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 220px; }
+.signal-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 18px;
+  letter-spacing: .14em;
+  padding: 14px 22px; border-radius: 12px;
+  border: 1.5px solid currentColor; min-width: 200px;
+}
+.signal-chip.accumulate { color: var(--up);    background: var(--up-soft); }
+.signal-chip.hold       { color: var(--paper-dim); background: rgba(140,138,130,.10); border-color: var(--line2); }
+.signal-chip.watch      { color: var(--amber); background: var(--amber-soft); }
+.signal-chip.trim       { color: var(--down);  background: var(--down-soft); }
+.signal-reason {
+  font-size: 13px; line-height: 1.55; color: var(--paper-dim);
+}
+.signal-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+
+/* ─────────── Drivers ─────────── */
+.drivers-list { display: grid; gap: 10px; }
+.driver-row {
+  display: grid; grid-template-columns: 28px 1fr; gap: 14px; align-items: start;
+  padding: 13px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px;
+}
+.driver-num { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 14px; padding-top: 1px; }
+.driver-text { font-size: 14.5px; line-height: 1.55; color: var(--paper); }
+
+/* ─────────── Bull / Bear ─────────── */
+.bullbear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.case-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 22px 24px; position: relative; overflow: hidden;
+}
+.case-card.bull { border-left: 3px solid var(--up); }
+.case-card.bear { border-left: 3px solid var(--down); }
+.case-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.case-tag {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+}
+.bull .case-tag { color: var(--up); }
+.bear .case-tag { color: var(--down); }
+.case-title { font-family: var(--serif); font-weight: 500; font-size: 18px; color: var(--paper); }
+.case-body { font-size: 14.5px; line-height: 1.6; color: var(--paper-dim); }
+.case-level {
+  margin-top: 14px; padding: 10px 14px;
+  background: var(--ink2); border: 1px solid var(--line2); border-radius: 9px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 12px;
+}
+.case-level .lvl-k { color: var(--muted); letter-spacing: .04em; }
+.case-level .lvl-v { color: var(--paper); font-weight: 700; }
+
+/* ─────────── News ─────────── */
+.news-list { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.news-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+  padding: 14px 18px; background: var(--ink2);
+  text-decoration: none; color: inherit; transition: background .15s;
+}
+.news-row:hover { background: var(--panel); }
+.news-title { font-size: 14.5px; line-height: 1.45; color: var(--paper); }
+.news-meta {
+  display: flex; gap: 14px; align-items: center; margin-top: 5px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: .04em;
+}
+.news-meta .npub { color: var(--paper-dim); }
+.news-link {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); white-space: nowrap;
+}
+.news-empty {
+  padding: 18px; text-align: center; color: var(--muted);
+  font-family: var(--mono); font-size: 12px;
+  background: var(--ink2); border-radius: 12px; border: 1px dashed var(--line2);
+}
+
+/* ─────────── Watch this week ─────────── */
+.watch-list { display: grid; gap: 9px; }
+.watch-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; background: var(--ink2); border: 1px solid var(--line); border-radius: 10px;
+  font-size: 14px; color: var(--paper-dim);
+}
+.watch-row::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
+}
+
+/* ─────────── Share card ─────────── */
+.share-card-wrap {
+  display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; align-items: start;
+}
+.share-preview {
+  border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  background: var(--ink2); position: relative;
+  aspect-ratio: 1200 / 675;
+}
+.share-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.share-preview .ph {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}
+.share-side { display: flex; flex-direction: column; gap: 12px; }
+.share-tweet {
+  background: var(--ink2); border: 1px solid var(--line); border-radius: 11px;
+  padding: 14px 16px;
+  font-size: 13.5px; line-height: 1.55; color: var(--paper-dim);
+  white-space: pre-wrap; min-height: 120px;
+}
+.share-actions { display: flex; flex-direction: column; gap: 8px; }
+.share-btn {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  background: var(--accent); color: #1a1407; border: 1px solid var(--accent);
+  border-radius: 10px; padding: 11px 16px; cursor: pointer;
+  font-family: var(--sans); font-weight: 600; font-size: 13.5px;
+  transition: all .15s;
+}
+.share-btn:hover { box-shadow: 0 6px 22px var(--accent-glow); }
+.share-btn.secondary { background: var(--ink2); color: var(--paper); border-color: var(--line2); }
+.share-btn.secondary:hover { border-color: var(--accent-deep); }
+.share-btn:disabled { opacity: .5; cursor: not-allowed; }
+.share-btn .ico { font-family: var(--mono); font-size: 12px; }
+
+/* ─────────── Chart ─────────── */
+.chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+.chart-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
 .range { display: inline-flex; background: var(--ink2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; }
 .range button {
   background: none; border: none; cursor: pointer;
@@ -367,7 +444,7 @@ main { padding-bottom: 80px; }
 }
 .range button:hover { color: var(--paper-dim); }
 .range button.on { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent-deep); padding: 4px 10px; }
-.chart-frame { position: relative; height: 300px; }
+.chart-frame { position: relative; height: 280px; }
 .chart-frame canvas { display: none; }
 .chart-skel {
   position: absolute; inset: 0; border-radius: 10px;
@@ -377,130 +454,28 @@ main { padding-bottom: 80px; }
   background: repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 38px);
 }
 
-/* ───────────────────────── Theme cards ───────────────────────── */
-.themes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
-.theme-card {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-  padding: 22px 22px 20px; position: relative; overflow: hidden;
-  transition: transform .25s, border-color .25s, box-shadow .25s;
-  animation: cardIn .5s cubic-bezier(.2,.7,.3,1) both;
-}
-.theme-card:hover { transform: translateY(-3px); border-color: var(--line2); box-shadow: 0 16px 40px rgba(0,0,0,.35); }
-.theme-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--neutral); opacity: .8; }
-.theme-card.bullish::before { background: var(--up); }
-.theme-card.bearish::before { background: var(--down); }
-.theme-card.mixed::before   { background: var(--amber); }
-.theme-card.neutral::before { background: var(--neutral); }
-@keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.theme-card .tnum { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; }
-.theme-card .ttitle { font-family: var(--serif); font-weight: 500; font-size: 19px; line-height: 1.2; color: var(--paper); margin: 9px 0 11px; letter-spacing: -.01em; }
-.theme-card .tbody { font-size: 13.5px; line-height: 1.62; color: var(--paper-dim); }
-.sentiment {
-  display: inline-flex; align-items: center; gap: 7px; margin-top: 15px;
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
-  padding: 5px 11px; border-radius: 20px; border: 1px solid var(--line2);
-}
-.sentiment .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral); }
-.sentiment.bullish { color: var(--up);   border-color: rgba(79,178,134,.4); background: var(--up-soft); }
-.sentiment.bullish .dot { background: var(--up); }
-.sentiment.bearish { color: var(--down); border-color: rgba(208,99,95,.4); background: var(--down-soft); }
-.sentiment.bearish .dot { background: var(--down); }
-.sentiment.mixed   { color: var(--amber); border-color: rgba(217,164,65,.4); background: rgba(217,164,65,.1); }
-.sentiment.mixed .dot { background: var(--amber); }
-.sentiment.neutral { color: var(--neutral); }
-.sentiment.neutral .dot { background: var(--neutral); }
-
-/* ───────────────────────── Polymarket odds rail ───────────────────────── */
-.odds-rail { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
-.odds-chip {
-  flex: 0 0 auto; width: 256px; scroll-snap-align: start;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 13px;
-  padding: 18px; position: relative; overflow: hidden;
-  transition: border-color .2s, transform .2s;
-}
-.odds-chip:hover { border-color: var(--line2); transform: translateY(-2px); }
-.odds-chip .oq { font-size: 13px; line-height: 1.45; color: var(--paper-dim); min-height: 56px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.odds-chip .oprob { font-family: var(--mono); font-weight: 700; font-size: 34px; color: var(--accent); margin-top: 14px; line-height: 1; letter-spacing: -.01em; }
-.odds-chip .obar { height: 4px; border-radius: 3px; background: var(--ink2); margin-top: 10px; overflow: hidden; }
-.odds-chip .obar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: 3px; transition: width .8s cubic-bezier(.2,.7,.3,1); }
-.odds-chip .ofoot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
-.odds-chip .ovol { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-.odds-chip .otag { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-deep); }
-
-/* ───────────────────────── Hero image band ───────────────────────── */
-.image-band { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 21 / 9; min-height: 220px; background: var(--ink2); }
-.image-band img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.image-band .igrad { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(10,11,14,.55)); pointer-events: none; }
-.image-band .icap {
-  position: absolute; left: 18px; bottom: 16px; z-index: 2;
-  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--paper-dim);
-}
-
-/* ───────────────────────── Sentiment summary ───────────────────────── */
-.senti-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-.senti-card {
-  background: var(--panel); border: 1px solid var(--line); border-left-width: 3px; border-radius: 11px;
-  padding: 16px 18px;
-}
-.senti-card.bullish { border-left-color: var(--up); }
-.senti-card.bearish { border-left-color: var(--down); }
-.senti-card.mixed   { border-left-color: var(--amber); }
-.senti-card.neutral { border-left-color: var(--neutral); }
-.senti-card .shead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
-.senti-card .ssource { font-family: var(--mono); font-size: 12px; color: var(--paper); letter-spacing: .02em; }
-.senti-card .spill {
-  font-family: var(--mono); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase;
-  padding: 3px 8px; border-radius: 12px; border: 1px solid var(--line2);
-}
-.senti-card.bullish .spill { color: var(--up); border-color: rgba(79,178,134,.4); }
-.senti-card.bearish .spill { color: var(--down); border-color: rgba(208,99,95,.4); }
-.senti-card.mixed .spill   { color: var(--amber); border-color: rgba(217,164,65,.4); }
-.senti-card.neutral .spill { color: var(--neutral); }
-.senti-card .stake { font-size: 13px; line-height: 1.55; color: var(--paper-dim); }
-
-/* ───────────────────────── Citations + disclaimer footer ───────────────────────── */
-.footer { margin-top: 14px; padding: 30px 0 0; border-top: 1px solid var(--line); }
-.cites { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+/* ─────────── Footer ─────────── */
+.footer { margin-top: 14px; padding: 28px 0 0; border-top: 1px solid var(--line); }
+.cites { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .cites-lbl { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--paper); margin-right: 4px; }
 .cite-chip {
   font-family: var(--mono); font-size: 11px; color: var(--paper-dim);
-  border: 1px solid var(--line2); border-radius: 18px; padding: 5px 13px;
+  border: 1px solid var(--line2); border-radius: 18px; padding: 5px 12px;
   background: var(--ink2);
 }
 .disclaimer {
-  margin-top: 26px; padding: 16px 20px; border-radius: 11px;
+  margin-top: 24px; padding: 16px 20px; border-radius: 11px;
   background: rgba(217,164,65,.06); border: 1px solid rgba(217,164,65,.22);
   display: flex; align-items: center; gap: 13px;
 }
 .disclaimer .dmark {
-  font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--amber);
+  font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--amber);
   border: 1px solid rgba(217,164,65,.5); border-radius: 6px; padding: 4px 8px; flex-shrink: 0;
 }
 .disclaimer .dtext { font-size: 13.5px; color: var(--paper-dim); }
 .disclaimer .dtext strong { color: var(--paper); font-weight: 600; }
 
-.meta-foot {
-  margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line);
-  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-  font-family: var(--mono); font-size: 10.5px; color: var(--muted);
-}
-.meta-foot .mf { display: inline-flex; align-items: center; gap: 6px; }
-.meta-foot .mf b { color: var(--paper-dim); font-weight: 500; }
-
-/* copy + actions */
-.actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.ghost-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--ink2); border: 1px solid var(--line2); color: var(--paper-dim);
-  font-family: var(--mono); font-size: 11.5px; letter-spacing: .03em;
-  padding: 8px 15px; border-radius: 9px; cursor: pointer; transition: all .16s;
-}
-.ghost-btn:hover:not(:disabled) { border-color: var(--accent-deep); color: var(--paper); }
-.ghost-btn:disabled { opacity: .4; cursor: not-allowed; }
-.ghost-btn .gk { color: var(--accent); }
-
-/* error state */
+/* ─────────── Errors / landing ─────────── */
 .errbox {
   margin: 20px 0; padding: 16px 20px; border-radius: 12px;
   background: var(--down-soft); border: 1px solid rgba(208,99,95,.4);
@@ -510,56 +485,50 @@ main { padding-bottom: 80px; }
 .errbox .emark { font-family: var(--mono); font-weight: 700; color: var(--down); border: 1px solid rgba(208,99,95,.5); border-radius: 6px; padding: 3px 8px; flex-shrink: 0; }
 .errbox .etext { font-size: 13.5px; color: var(--paper); }
 
-/* empty landing state */
 .landing { padding: 70px 0 40px; text-align: center; }
-.landing .lhead { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 46px); line-height: 1.1; letter-spacing: -.018em; color: var(--paper); max-width: 760px; margin: 0 auto; }
+.landing .lhead { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 46px); line-height: 1.1; letter-spacing: -.018em; color: var(--paper); max-width: 780px; margin: 0 auto; }
 .landing .lhead .em { font-style: italic; color: var(--accent); }
-.landing .lsub { margin-top: 20px; font-size: 15px; color: var(--paper-dim); max-width: 540px; margin-left: auto; margin-right: auto; line-height: 1.65; }
-.landing .lhint { margin-top: 26px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
-.landing .lrule { width: 60px; height: 2px; background: var(--accent); margin: 30px auto 0; opacity: .7; }
+.landing .lsub { margin-top: 18px; font-size: 15px; color: var(--paper-dim); max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.65; }
+.landing .lhint { margin-top: 24px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.landing .lrule { width: 60px; height: 2px; background: var(--accent); margin: 28px auto 0; opacity: .7; }
 
-/* reveal-on-stream */
 .reveal { animation: reveal .55s cubic-bezier(.2,.7,.3,1) both; }
-@keyframes reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes reveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
-/* ───────────────────────── Responsive ───────────────────────── */
+/* ─────────── Responsive ─────────── */
 @media (max-width: 920px) {
-  .hero-grid { grid-template-columns: 1fr; gap: 26px; align-items: stretch; }
-  .recap { aspect-ratio: 16 / 9; }
+  .tldr-card { grid-template-columns: 1fr; }
+  .signal-block { min-width: 0; }
+  .bullbear-grid { grid-template-columns: 1fr; }
+  .share-card-wrap { grid-template-columns: 1fr; }
   .quote-band { grid-template-columns: 1fr; gap: 18px; }
-  .levels { grid-template-columns: repeat(2, 1fr); }
   .controls { order: 3; width: 100%; }
 }
 @media (max-width: 620px) {
   .wrap, .masthead-inner, .demobar-inner, .progress-inner { padding-left: 18px; padding-right: 18px; }
-  .levels { grid-template-columns: 1fr 1fr; }
   .stepper { gap: 4px; }
   .step .slabel { display: none; }
   .step { min-width: 0; flex: 0 0 auto; }
   .step .bar { min-width: 18px; }
-  .headline { font-size: 30px; }
+  .headline { font-size: 28px; }
   .quote-px .px { font-size: 30px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ───────────────────────── Masthead ───────────────────────── -->
+<!-- ─────────── Masthead ─────────── -->
 <header class="masthead">
   <div class="masthead-inner">
     <div class="brand" id="brand-home" title="Reset">
       <span class="brand-mark">Agnes</span>
-      <span class="brand-tag">Finance Intelligence</span>
+      <span class="brand-tag">Stock Brief</span>
     </div>
 
     <div class="controls">
       <label class="field field-sym">
         <span class="sigil">$</span>
         <input id="sym-input" type="text" placeholder="ticker" maxlength="12" autocomplete="off" spellcheck="false" aria-label="Ticker symbol">
-      </label>
-      <label class="field field-topic">
-        <span class="sigil">/</span>
-        <input id="topic-input" type="text" placeholder="topic or question (optional)" autocomplete="off" spellcheck="false" aria-label="Research topic">
       </label>
 
       <div class="seg" id="window-seg" role="group" aria-label="Time window">
@@ -568,14 +537,9 @@ main { padding-bottom: 80px; }
         <button data-days="90">90D</button>
       </div>
 
-      <label class="switch" id="quick-switch" title="Quick mode runs a faster, lighter brief">
-        <span class="track"><span class="thumb"></span></span>
-        <span class="txt" id="quick-txt">Quick</span>
-      </label>
-
       <button class="run" id="run-btn">
         <span class="glyph" id="run-glyph"><svg viewBox="0 0 10 12" width="9" height="11" aria-hidden="true"><path d="M0 0L10 6L0 12Z" fill="currentColor"/></svg></span>
-        <span id="run-label">Analyze</span>
+        <span id="run-label">Brief me</span>
       </button>
     </div>
 
@@ -587,13 +551,13 @@ main { padding-bottom: 80px; }
 
   <div class="demobar" id="demobar" style="display:none">
     <div class="demobar-inner">
-      <span class="demobar-lbl">Demos</span>
+      <span class="demobar-lbl">Try</span>
       <span id="demo-chips" style="display:flex;gap:11px;align-items:center"></span>
     </div>
   </div>
 </header>
 
-<!-- ───────────────────────── Progress rail ───────────────────────── -->
+<!-- ─────────── Progress rail ─────────── -->
 <section class="progress" id="progress">
   <div class="progress-inner">
     <div class="stepper" id="stepper"></div>
@@ -604,11 +568,11 @@ main { padding-bottom: 80px; }
 
 <main class="wrap" id="main">
 
-  <!-- Landing / empty state -->
+  <!-- Landing -->
   <section class="landing" id="landing">
-    <h1 class="lhead">A grounded market brief, <span class="em">composed</span> from real numbers and live signal.</h1>
-    <p class="lsub">Enter a ticker or a question. Agnes pulls a price snapshot, scans prediction markets and social signal, and synthesizes a scannable digest with a chart, theme cards, and odds.</p>
-    <p class="lhint">Type a symbol above and press Analyze, or open a demo below.</p>
+    <h1 class="lhead">Your stock, <span class="em">explained</span> — in plain English.</h1>
+    <p class="lsub">Enter a ticker. Get a one-paragraph read on what's happening, a clear action signal, and the latest news with clickable links. Built for people who own stock, not analysts.</p>
+    <p class="lhint">Try a symbol above and press Brief me, or open a demo.</p>
     <div class="lrule"></div>
   </section>
 
@@ -618,52 +582,87 @@ main { padding-bottom: 80px; }
     <span class="etext" id="errtext"></span>
   </div>
 
-  <!-- ============ Output (hidden until content streams) ============ -->
+  <!-- ============ Brief ============ -->
   <div id="digest-root" style="display:none">
 
-    <!-- Hero band: headline + recap video -->
-    <section class="hero" id="hero">
-      <span class="kicker" id="kicker">Market Digest</span>
-      <div class="hero-grid">
-        <div>
-          <h1 class="headline" id="headline">Preparing your brief</h1>
-          <div class="byline" id="byline"></div>
-        </div>
-        <div class="recap" id="recap-slot"></div>
-      </div>
+    <section class="hero">
+      <span class="kicker" id="kicker">Stock Brief</span>
+      <h1 class="headline" id="headline">Preparing your brief</h1>
+      <div class="byline" id="byline"></div>
     </section>
 
-    <!-- Summary: the brief in text, shown on the page and copyable -->
-    <section class="section" id="summary-section" style="display:none">
-      <div class="sec-head">
-        <h2 class="sec-title">Summary</h2>
-        <button class="ghost-btn" id="copy-btn" disabled>
-          <span class="gk"><svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true"><rect x="2.3" y="4" width="7.4" height="8.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="4.6" y="1.6" width="7.4" height="8.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span> Copy
-        </button>
-      </div>
-      <div class="summary-text" id="summary-text"></div>
-    </section>
-
-    <!-- Ticker hero / quote -->
+    <!-- 01 Snapshot -->
     <section class="section" id="quote-section" style="display:none">
       <div class="sec-head">
         <h2 class="sec-title"><span class="idx">01</span> Snapshot</h2>
         <span class="sec-note" id="quote-note"></span>
       </div>
       <div class="quote-band" id="quote-band"></div>
-      <div class="levels" id="levels" style="margin-top:16px"></div>
-      <div class="metrics-strip" id="metrics-strip"></div>
+      <div class="essentials" id="essentials"></div>
+      <button class="details-toggle" id="details-toggle" style="display:none">Show all numbers ↓</button>
+      <div class="details-grid" id="details-grid"></div>
     </section>
 
-    <!-- Price chart -->
+    <!-- 02 TL;DR + Action -->
+    <section class="section" id="tldr-section" style="display:none">
+      <div class="sec-head">
+        <h2 class="sec-title"><span class="idx">02</span> What's going on</h2>
+        <span class="sec-note">Plain-English read · Not advice</span>
+      </div>
+      <div class="tldr-card">
+        <div class="tldr-text" id="tldr-text"></div>
+        <div class="signal-block">
+          <span class="signal-label">Signal</span>
+          <div class="signal-chip hold" id="signal-chip">HOLD</div>
+          <div class="signal-reason" id="signal-reason"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 Drivers -->
+    <section class="section" id="drivers-section" style="display:none">
+      <div class="sec-head">
+        <h2 class="sec-title"><span class="idx">03</span> What's driving the move</h2>
+        <span class="sec-note">Today's catalysts</span>
+      </div>
+      <div class="drivers-list" id="drivers-list"></div>
+    </section>
+
+    <!-- 04 Bull / Bear -->
+    <section class="section" id="bullbear-section" style="display:none">
+      <div class="sec-head">
+        <h2 class="sec-title"><span class="idx">04</span> What could happen next</h2>
+        <span class="sec-note">Two paths, two levels to watch</span>
+      </div>
+      <div class="bullbear-grid">
+        <div class="case-card bull">
+          <div class="case-head"><span class="case-title">If things go well</span><span class="case-tag">Bull case</span></div>
+          <div class="case-body" id="bull-outlook"></div>
+          <div class="case-level" id="bull-level" style="display:none">
+            <span class="lvl-k">Level to watch</span>
+            <span class="lvl-v" id="bull-level-v"></span>
+          </div>
+        </div>
+        <div class="case-card bear">
+          <div class="case-head"><span class="case-title">If things go badly</span><span class="case-tag">Bear case</span></div>
+          <div class="case-body" id="bear-outlook"></div>
+          <div class="case-level" id="bear-level" style="display:none">
+            <span class="lvl-k">Level to watch</span>
+            <span class="lvl-v" id="bear-level-v"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 Price chart -->
     <section class="section" id="chart-section" style="display:none">
       <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">02</span> Price action</h2>
+        <h2 class="sec-title"><span class="idx">05</span> Price chart</h2>
         <span class="sec-note" id="chart-note"></span>
       </div>
       <div class="chart-card">
         <div class="chart-top">
-          <span class="sec-note" id="chart-range-label">Close and volume</span>
+          <span class="sec-note">Close and volume</span>
           <div class="range" id="chart-range">
             <button data-days="7">7D</button>
             <button data-days="30" class="on">30D</button>
@@ -677,49 +676,55 @@ main { padding-bottom: 80px; }
       </div>
     </section>
 
-    <!-- Theme cards -->
-    <section class="section" id="themes-section" style="display:none">
+    <!-- 06 News -->
+    <section class="section" id="news-section" style="display:none">
       <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">03</span> Themes</h2>
-        <span class="sec-note" id="themes-note"></span>
+        <h2 class="sec-title"><span class="idx">06</span> Latest news</h2>
+        <span class="sec-note">Yahoo Finance · clickable</span>
       </div>
-      <div class="themes-grid" id="themes-grid"></div>
+      <div class="news-list" id="news-list"></div>
     </section>
 
-    <!-- Polymarket odds -->
-    <section class="section" id="odds-section" style="display:none">
+    <!-- 07 Watch this week -->
+    <section class="section" id="watch-section" style="display:none">
       <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">04</span> Prediction markets</h2>
-        <span class="sec-note">Polymarket implied odds</span>
+        <h2 class="sec-title"><span class="idx">07</span> Things to watch this week</h2>
+        <span class="sec-note">Upcoming events</span>
       </div>
-      <div class="odds-rail" id="odds-rail"></div>
+      <div class="watch-list" id="watch-list"></div>
     </section>
 
-    <!-- Hero image -->
-    <section class="section" id="image-section" style="display:none">
+    <!-- 08 Share card -->
+    <section class="section" id="share-section" style="display:none">
       <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">05</span> Visual</h2>
+        <h2 class="sec-title"><span class="idx">08</span> Share it</h2>
+        <span class="sec-note">Post a short summary on X / LinkedIn</span>
       </div>
-      <div class="image-band" id="image-band"></div>
+      <div class="share-card-wrap">
+        <div class="share-preview" id="share-preview">
+          <div class="ph">building share card…</div>
+        </div>
+        <div class="share-side">
+          <div class="share-tweet" id="share-tweet"></div>
+          <div class="share-actions">
+            <button class="share-btn" id="copy-tweet-btn">
+              <span class="ico">⎘</span> Copy tweet text
+            </button>
+            <button class="share-btn secondary" id="download-card-btn">
+              <span class="ico">↓</span> Download share image
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Sentiment summary -->
-    <section class="section" id="senti-section" style="display:none">
-      <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">06</span> Signal read</h2>
-        <span class="sec-note">Across social and news sources</span>
-      </div>
-      <div class="senti-grid" id="senti-grid"></div>
-    </section>
-
-    <!-- Citations + disclaimer -->
+    <!-- Footer -->
     <footer class="footer" id="footer" style="display:none">
       <div class="cites" id="cites"></div>
       <div class="disclaimer">
-        <span class="dmark">NOTE</span>
-        <span class="dtext"><strong>Informational only, not investment advice.</strong> Figures may be delayed or estimated. Do your own research before acting.</span>
+        <span class="dmark">NOT ADVICE</span>
+        <span class="dtext"><strong>This is information, not financial advice.</strong> The action signal is a starting point for your own thinking. Real money decisions should consider your goals, your taxes, and your risk tolerance. Numbers can be delayed or estimated.</span>
       </div>
-      <div class="meta-foot" id="meta-foot"></div>
     </footer>
 
   </div>
@@ -731,45 +736,39 @@ main { padding-bottom: 80px; }
 /* ─────────────────── State ─────────────────── */
 const State = {
   days: 30,
-  quick: false,
   running: false,
   symbol: "",
   chartDays: 30,
   chart: null,
-  digest: null,          // last full digest object (for copy + chart re-fetch)
+  digest: null,
   es: null,
 };
 
 const PHASES = [
   { key: "snapshot",  label: "Market data" },
-  { key: "research",  label: "Researching" },
-  { key: "synthesis", label: "Synthesizing" },
-  { key: "image",     label: "Hero image" },
-  { key: "video",     label: "Recap video" },
+  { key: "research",  label: "Reading news" },
+  { key: "synthesis", label: "Writing brief" },
+  { key: "image",     label: "Share card" },
 ];
 
 const TOOL_LABELS = {
-  search_polymarket: "Polymarket",
+  yahoo_news:        "Yahoo News",
   search_web:        "Web",
   search_reddit:     "Reddit",
-  search_hackernews: "Hacker News",
-  get_ticker_data:   "Market data",
 };
 
 /* ─────────────────── DOM ─────────────────── */
 const $ = (id) => document.getElementById(id);
 const symInput   = $("sym-input");
-const topicInput = $("topic-input");
 const runBtn     = $("run-btn");
 const runLabel   = $("run-label");
-const runGlyph   = $("run-glyph");
 const healthLamp = $("health-lamp");
 const healthText = $("health-text");
 
 const progressEl  = $("progress");
-const stepperEl    = $("stepper");
-const liveSources  = $("live-sources");
-const statusLine   = $("status-line");
+const stepperEl   = $("stepper");
+const liveSources = $("live-sources");
+const statusLine  = $("status-line");
 
 const landing    = $("landing");
 const digestRoot = $("digest-root");
@@ -784,10 +783,6 @@ function esc(s) {
 }
 function setText(el, s) { el.textContent = (s == null ? "" : String(s)); }
 
-function fmtMoney(n) {
-  if (n == null || isNaN(n)) return "N/A";
-  return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function fmtLarge(n) {
   if (n == null || isNaN(n)) return "N/A";
   const a = Math.abs(n);
@@ -804,14 +799,6 @@ function fmtVol(n) {
   if (n >= 1e3) return (n / 1e3).toFixed(0) + "K";
   return Number(n).toLocaleString();
 }
-function fmtUSD(n) {
-  if (n == null || isNaN(n)) return "N/A";
-  const a = Math.abs(n);
-  if (a >= 1e9) return "$" + (n / 1e9).toFixed(1) + "B";
-  if (a >= 1e6) return "$" + (n / 1e6).toFixed(1) + "M";
-  if (a >= 1e3) return "$" + (n / 1e3).toFixed(0) + "K";
-  return "$" + Math.round(n).toLocaleString();
-}
 function fmtPct(n, withSign) {
   if (n == null || isNaN(n)) return "N/A";
   const sign = withSign ? (n > 0 ? "+" : "") : "";
@@ -823,9 +810,9 @@ function pxFmt(n) {
   const dp = a >= 1000 ? 0 : (a >= 1 ? 2 : 4);
   return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
-function sentClass(s) {
-  s = (s || "neutral").toLowerCase();
-  return ["bullish", "bearish", "mixed", "neutral"].includes(s) ? s : "neutral";
+function pctInRange(price, low, high) {
+  if (price == null || low == null || high == null || high <= low) return null;
+  return Math.max(0, Math.min(100, (price - low) / (high - low) * 100));
 }
 
 /* ─────────────────── Health ─────────────────── */
@@ -835,11 +822,10 @@ function sentClass(s) {
     const d = await r.json();
     if (d && d.agnes) {
       healthLamp.classList.add("ok");
-      const web = d.web_search ? String(d.web_search).split("_")[0].toLowerCase() : "off";
-      setText(healthText, "live / web:" + web);
+      setText(healthText, "live");
     } else {
       healthLamp.classList.add("bad");
-      setText(healthText, "no api key");
+      setText(healthText, "offline mode");
     }
   } catch {
     healthLamp.classList.add("bad");
@@ -866,7 +852,7 @@ function sentClass(s) {
       host.appendChild(chip);
     });
     $("demobar").style.display = "block";
-  } catch { /* demos are optional */ }
+  } catch { /* optional */ }
 })();
 
 async function openDemo(key) {
@@ -878,16 +864,8 @@ async function openDemo(key) {
     const data = await r.json();
     landing.style.display = "none";
     digestRoot.style.display = "block";
-    // Demos arrive whole: render snapshot pieces from the digest, then everything.
-    if (data.snapshot) {
-      renderSnapshotFromDigest(data);
-    }
-    if (Array.isArray(data.history) && data.history.length > 1) {
-      State.symbol = (data.snapshot && data.snapshot.symbol) || State.symbol;
-      State.chartDays = (data.meta && data.meta.days) || State.chartDays;
-      syncChartRange(State.chartDays);
-      renderChart(data.history);
-    }
+    if (data.snapshot) renderSnapshotTicker(Object.assign({}, data.snapshot));
+    if (Array.isArray(data.history) && data.history.length > 1) renderChart(data.history);
     renderDigest(data);
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (e) {
@@ -904,14 +882,6 @@ $("window-seg").querySelectorAll("button").forEach((b) => {
   });
 });
 
-(function quickToggle() {
-  const sw = $("quick-switch");
-  sw.addEventListener("click", () => {
-    State.quick = !State.quick;
-    sw.classList.toggle("on", State.quick);
-  });
-})();
-
 $("brand-home").addEventListener("click", () => {
   if (State.running) return;
   resetView();
@@ -920,10 +890,8 @@ $("brand-home").addEventListener("click", () => {
 });
 
 symInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGenerate(); });
-topicInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGenerate(); });
 runBtn.addEventListener("click", startGenerate);
 
-/* chart range buttons re-fetch live ticker data */
 $("chart-range").querySelectorAll("button").forEach((b) => {
   b.addEventListener("click", async () => {
     const d = parseInt(b.dataset.days, 10);
@@ -947,17 +915,24 @@ function syncChartRange(d) {
   });
 }
 
+$("details-toggle").addEventListener("click", () => {
+  const grid = $("details-grid");
+  const open = grid.classList.toggle("open");
+  $("details-toggle").textContent = open ? "Hide details ↑" : "Show all numbers ↓";
+});
+
 /* ─────────────────── Running state ─────────────────── */
 function setRunning(on) {
   State.running = on;
   runBtn.disabled = on;
   if (on) {
     runLabel.textContent = "Working";
-    runGlyph.outerHTML = '<span class="glyph" id="run-glyph"><span class="ring sm"></span></span>';
+    const g = $("run-glyph");
+    if (g) g.outerHTML = '<span class="glyph" id="run-glyph"><span class="ring sm"></span></span>';
   } else {
     const g = $("run-glyph");
     if (g) g.outerHTML = '<span class="glyph" id="run-glyph"><svg viewBox="0 0 10 12" width="9" height="11" aria-hidden="true"><path d="M0 0L10 6L0 12Z" fill="currentColor"/></svg></span>';
-    runLabel.textContent = "Analyze";
+    runLabel.textContent = "Brief me";
   }
 }
 
@@ -970,15 +945,14 @@ function resetView() {
   liveSources.innerHTML = "";
   statusLine.innerHTML = "";
   State.digest = null;
-  // collapse sections
-  ["summary-section","quote-section","chart-section","themes-section","odds-section","image-section","senti-section","footer"]
+  ["quote-section","tldr-section","drivers-section","bullbear-section",
+   "chart-section","news-section","watch-section","share-section","footer"]
     .forEach((id) => { const e = $(id); if (e) e.style.display = "none"; });
-  $("recap-slot").innerHTML = "";
-  $("copy-btn").disabled = true;
   if (State.chart) { try { State.chart.destroy(); } catch {} State.chart = null; }
   $("price-canvas").style.display = "none";
   $("chart-skel").style.display = "grid";
   $("chart-skel").textContent = "loading price history";
+  $("share-preview").innerHTML = '<div class="ph">building share card…</div>';
 }
 
 function showError(msg, fatal) {
@@ -995,7 +969,7 @@ function buildStepper() {
     step.className = "step";
     step.id = "step-" + p.key;
     step.innerHTML =
-      '<span class="bead"><span class="num">&#183;</span><span class="tick"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 6.5L5 9L9.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>' +
+      '<span class="bead"><span class="num">·</span><span class="tick"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 6.5L5 9L9.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>' +
       '<span class="slabel">' + esc(p.label) + "</span>" +
       '<span class="bar"></span>';
     stepperEl.appendChild(step);
@@ -1053,8 +1027,7 @@ function doneSource(tool, query, count, error) {
 function startGenerate() {
   if (State.running) return;
   const symbol = symInput.value.trim().toUpperCase();
-  const topic  = topicInput.value.trim();
-  if (!symbol && !topic) { showError("Enter a ticker symbol or a topic to begin."); return; }
+  if (!symbol) { showError("Enter a ticker symbol to begin (e.g. AAPL, BTC-USD)."); return; }
 
   resetView();
   landing.style.display = "none";
@@ -1065,17 +1038,14 @@ function startGenerate() {
   progressEl.classList.add("show");
   buildStepper();
   setPhase("snapshot");
-  statusLine.innerHTML = '<span class="ring sm"></span> Starting the build';
+  statusLine.innerHTML = '<span class="ring sm"></span> Starting your brief';
 
-  // preliminary headline
-  setText($("headline"), "Composing a brief" + (symbol ? " for " + symbol : ""));
+  setText($("headline"), "Composing a brief for " + symbol);
   $("byline").innerHTML = "";
 
   const params = new URLSearchParams();
-  if (symbol) params.set("symbol", symbol);
+  params.set("symbol", symbol);
   params.set("days", String(State.days));
-  if (topic) params.set("topic", topic);
-  params.set("quick", String(State.quick));
   params.set("media", "true");
 
   const es = new EventSource("/api/generate?" + params.toString());
@@ -1100,62 +1070,48 @@ function handleFrame(ev) {
       syncChartRange(State.chartDays);
       if (ev.symbol) setText($("headline"), "Composing a brief for " + ev.symbol);
       break;
-
     case "phase":
       setPhase(ev.key, ev.label);
       break;
-
     case "snapshot":
-      // Progressive: render hero quote + chart immediately
       State.symbol = (ev.data && ev.data.symbol) || State.symbol;
       renderSnapshotTicker(ev.data);
       if (ev.data && Array.isArray(ev.data.history) && ev.data.history.length > 1) {
         renderChart(ev.data.history);
       }
-      statusLine.innerHTML = '<span class="ring sm"></span> Snapshot ready, gathering signal';
+      statusLine.innerHTML = '<span class="ring sm"></span> Snapshot ready, reading news';
       break;
-
     case "search_start":
       addSource(ev.tool, ev.query);
       break;
-
     case "search_done":
       doneSource(ev.tool, ev.query, ev.count, ev.error);
       break;
-
     case "image":
-      fillImage(ev.url);
+      // Share card preview will be requested after the digest arrives.
       break;
-
-    case "video":
-      fillVideo(ev.url);
-      break;
-
     case "status":
       statusLine.innerHTML = '<span class="ring sm"></span> ' + esc(ev.message || "");
       break;
-
     case "error":
       showError(ev.message, ev.fatal);
       break;
-
     case "digest":
       State.digest = ev.data;
       completeAllPhases();
       renderDigest(ev.data);
-      statusLine.innerHTML = "Digest ready";
+      buildShareCard(ev.data);
+      statusLine.innerHTML = "Brief ready";
       break;
-
     case "done":
       if (State.es) { try { State.es.close(); } catch {} State.es = null; }
       setRunning(false);
-      // fade out progress shortly after completion
       setTimeout(() => { if (!State.running) progressEl.classList.remove("show"); }, 900);
       break;
   }
 }
 
-/* ─────────────────── Render: snapshot ticker (from snapshot frame) ─────────────────── */
+/* ─────────────────── Snapshot ─────────────────── */
 function renderSnapshotTicker(t) {
   if (!t) return;
   const band = $("quote-band");
@@ -1163,7 +1119,7 @@ function renderSnapshotTicker(t) {
   const cp = t.change_pct != null ? t.change_pct : null;
   const up = (cp != null ? cp : (change != null ? change : 0)) >= 0;
   const cls = (cp === 0 || cp == null) && (change === 0 || change == null) ? "flat" : (up ? "up" : "down");
-  const arw = cls === "up" ? "&#9650;" : (cls === "down" ? "&#9660;" : "&#9679;");
+  const arw = cls === "up" ? "▲" : (cls === "down" ? "▼" : "●");
 
   band.innerHTML =
     '<div class="quote-id">' +
@@ -1177,90 +1133,58 @@ function renderSnapshotTicker(t) {
         (cp != null ? " (" + fmtPct(Math.abs(cp)) + ")" : "") +
       "</div>" +
     "</div>" +
-    buildSparkMeta(t);
+    '<div></div>';
 
   $("quote-section").style.display = "block";
   $("quote-section").classList.add("reveal");
-  setText($("quote-note"), (t.asset_type ? String(t.asset_type).toUpperCase() : "") + (t.exchange ? " / " + t.exchange : ""));
+  setText($("quote-note"), (t.asset_type ? String(t.asset_type).toUpperCase() : "") + (t.exchange ? " · " + t.exchange : ""));
 
-  renderLevels(t.key_levels, t);
-  renderMetricsStrip(t);
-
-  // chart section appears alongside
+  renderEssentials(t);
+  renderDetails(t);
   $("chart-section").style.display = "block";
-  $("chart-section").classList.add("reveal");
   setText($("chart-note"), State.chartDays + "-day window");
 }
 
-function buildSparkMeta(t) {
-  const bits = [];
-  if (t.volume != null)     bits.push(["Vol", fmtVol(t.volume)]);
-  if (t.market_cap != null) bits.push(["Mkt cap", fmtLarge(t.market_cap)]);
-  if (t.day_high != null)   bits.push(["Day high", pxFmt(t.day_high)]);
-  if (!bits.length) return "<div></div>";
-  return '<div style="display:flex;gap:26px;flex-wrap:wrap">' +
-    bits.map(([k, v]) =>
-      '<div><div class="lk" style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">' + esc(k) + "</div>" +
-      '<div style="font-family:var(--mono);font-size:16px;color:var(--paper);margin-top:4px">' + esc(v) + "</div></div>"
-    ).join("") + "</div>";
-}
-
-function renderLevels(kl, t) {
-  const el = $("levels");
-  kl = kl || {};
-  const hi  = kl.week52_high != null ? kl.week52_high : (t ? t["52w_high"] : null);
-  const lo  = kl.week52_low  != null ? kl.week52_low  : (t ? t["52w_low"]  : null);
-  const sup = kl.support;
-  const res = kl.resistance;
-  const cells = [
-    ["52W High", hi,  "hi"],
-    ["52W Low",  lo,  "lo"],
-    ["Support",  sup, "sup"],
-    ["Resistance", res, "res"],
-  ];
-  el.innerHTML = cells.map(([k, v, c]) =>
-    '<div class="level ' + c + '"><div class="lk">' + esc(k) + "</div>" +
-    '<div class="lv">' + (v != null ? esc(pxFmt(v)) : "N/A") + "</div></div>"
+function renderEssentials(t) {
+  const el = $("essentials");
+  const pos = pctInRange(t.price, t["52w_low"] || (t.key_levels && t.key_levels.week52_low), t["52w_high"] || (t.key_levels && t.key_levels.week52_high));
+  const rows = [
+    ["Market cap", t.market_cap != null ? fmtLarge(t.market_cap) : null],
+    ["52-week range", (t["52w_low"] != null && t["52w_high"] != null) ? (pxFmt(t["52w_low"]) + " – " + pxFmt(t["52w_high"])) : null],
+    ["Position in range", pos != null ? Math.round(pos) + "%" : null],
+    ["Volume today", t.volume != null ? fmtVol(t.volume) : null],
+  ].filter(([, v]) => v != null);
+  el.innerHTML = rows.map(([k, v]) =>
+    '<div class="ecell"><div class="ek">' + esc(k) + "</div><div class=\"ev\">" + esc(v) + "</div></div>"
   ).join("");
 }
 
-function renderMetricsStrip(t) {
-  const el = $("metrics-strip");
+function renderDetails(t) {
   const rows = [
     ["Open",       t.open != null ? pxFmt(t.open) : null],
     ["Prev close", t.prev_close != null ? pxFmt(t.prev_close) : null],
     ["Day low",    t.day_low != null ? pxFmt(t.day_low) : null],
-    ["Volume",     t.volume != null ? fmtVol(t.volume) : null],
-    ["Avg vol",    t.avg_volume != null ? fmtVol(t.avg_volume) : null],
-    ["Mkt cap",    t.market_cap != null ? fmtLarge(t.market_cap) : null],
+    ["Day high",   t.day_high != null ? pxFmt(t.day_high) : null],
+    ["Avg volume", t.avg_volume != null ? fmtVol(t.avg_volume) : null],
     ["P / E",      t.pe_ratio != null ? Number(t.pe_ratio).toFixed(1) + "x" : null],
     ["Fwd P/E",    t.forward_pe != null ? Number(t.forward_pe).toFixed(1) + "x" : null],
     ["EPS",        t.eps != null ? pxFmt(t.eps) : null],
     ["Div yield",  t.dividend_yield != null ? (Number(t.dividend_yield) * 100).toFixed(2) + "%" : null],
     ["Beta",       t.beta != null ? Number(t.beta).toFixed(2) : null],
     ["Sector",     t.sector || null],
+    ["Industry",   t.industry || null],
   ].filter(([, v]) => v != null);
-
-  if (!rows.length) { el.style.display = "none"; return; }
-  el.style.display = "grid";
-  el.innerHTML = rows.map(([k, v]) =>
-    '<div class="mcell"><div class="mk">' + esc(k) + "</div>" +
-    '<div class="mv">' + esc(v) + "</div></div>"
+  const grid = $("details-grid");
+  if (!rows.length) { $("details-toggle").style.display = "none"; return; }
+  grid.innerHTML = rows.map(([k, v]) =>
+    '<div class="ecell"><div class="ek">' + esc(k) + "</div><div class=\"ev\">" + esc(v) + "</div></div>"
   ).join("");
+  $("details-toggle").style.display = "inline-block";
+  $("details-toggle").textContent = "Show all numbers ↓";
+  $("details-grid").classList.remove("open");
 }
 
-/* Snapshot derived from a full digest (demo path or final digest) */
-function renderSnapshotFromDigest(d) {
-  const snap = d.snapshot || {};
-  const t = {
-    symbol: snap.symbol, name: snap.name, price: snap.price,
-    change_pct: snap.change_pct, key_levels: snap.key_levels || {},
-  };
-  // merge any extra ticker fields the digest carried
-  renderSnapshotTicker(Object.assign({}, snap, t));
-}
-
-/* ─────────────────── Render: chart ─────────────────── */
+/* ─────────────────── Chart ─────────────────── */
 function renderChart(history) {
   if (!Array.isArray(history) || history.length < 2) return;
   const canvas = $("price-canvas");
@@ -1270,17 +1194,13 @@ function renderChart(history) {
   const labels  = history.map((h) => h.date);
   const closes  = history.map((h) => h.close);
   const volumes = history.map((h) => h.volume);
-
   const first = closes[0], last = closes[closes.length - 1];
   const up = last >= first;
   const line = up ? "#4fb286" : "#d0635f";
-
   const grid = "rgba(255,255,255,.045)";
-  const tickCol = "#6f6c63";
 
-  // gradient fill under the line
   const ctx = canvas.getContext("2d");
-  const grad = ctx.createLinearGradient(0, 0, 0, 300);
+  const grad = ctx.createLinearGradient(0, 0, 0, 280);
   grad.addColorStop(0, up ? "rgba(79,178,134,.22)" : "rgba(208,99,95,.22)");
   grad.addColorStop(1, "rgba(79,178,134,0)");
 
@@ -1289,17 +1209,12 @@ function renderChart(history) {
     data: {
       labels,
       datasets: [
-        {
-          type: "line", label: "Close", data: closes, yAxisID: "yP",
+        { type: "line", label: "Close", data: closes, yAxisID: "yP",
           borderColor: line, backgroundColor: grad, borderWidth: 2,
-          pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: line,
-          fill: true, tension: 0.28,
-        },
-        {
-          type: "bar", label: "Volume", data: volumes, yAxisID: "yV",
+          pointRadius: 0, pointHoverRadius: 4, fill: true, tension: 0.28 },
+        { type: "bar", label: "Volume", data: volumes, yAxisID: "yV",
           backgroundColor: "rgba(244,183,64,.16)", borderColor: "transparent",
-          barPercentage: 1.0, categoryPercentage: 0.9,
-        },
+          barPercentage: 1.0, categoryPercentage: 0.9 },
       ],
     },
     options: {
@@ -1321,20 +1236,16 @@ function renderChart(history) {
       },
       scales: {
         x: {
-          ticks: { color: tickCol, font: { family: "JetBrains Mono", size: 9 }, maxTicksLimit: 8, maxRotation: 0 },
-          grid: { color: grid, drawTicks: false },
-          border: { color: "#25262f" },
+          ticks: { color: "#6f6c63", font: { family: "JetBrains Mono", size: 9 }, maxTicksLimit: 8, maxRotation: 0 },
+          grid: { color: grid, drawTicks: false }, border: { color: "#25262f" },
         },
         yP: {
           position: "right",
           ticks: { color: "#a7a293", font: { family: "JetBrains Mono", size: 9 }, callback: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v.toFixed(v < 5 ? 2 : 0)) },
-          grid: { color: grid, drawTicks: false },
-          border: { display: false },
+          grid: { color: grid, drawTicks: false }, border: { display: false },
         },
-        yV: {
-          position: "left", display: false,
-          max: Math.max.apply(null, volumes.filter((v) => v != null)) * 4.2 || 1,
-        },
+        yV: { position: "left", display: false,
+          max: Math.max.apply(null, volumes.filter((v) => v != null)) * 4.2 || 1 },
       },
     },
   });
@@ -1345,52 +1256,67 @@ function renderDigest(d) {
   if (!d) return;
   State.digest = d;
 
-  // Headline + kicker
-  setText($("headline"), d.headline || "Market digest");
-  const at = d.meta && d.meta.asset_type ? String(d.meta.asset_type).toUpperCase() : "Market";
-  setText($("kicker"), at + " Digest");
-
-  // Byline from meta
+  setText($("headline"), d.headline || "Stock brief");
   renderByline(d.meta || {});
 
-  // Visible text summary (this is exactly what the Copy button copies)
-  renderSummary(d);
-
-  // Snapshot (if not already rendered from a snapshot frame, or to refine for demos)
-  if (d.snapshot) {
-    // only (re)render if the quote section is empty/hidden
-    if ($("quote-section").style.display === "none" || !$("quote-band").innerHTML.trim()) {
-      renderSnapshotFromDigest(d);
-    } else {
-      // keep live snapshot, just ensure levels reflect digest key_levels
-      renderLevels(d.snapshot.key_levels || {}, d.snapshot);
-    }
+  // 02 TL;DR + action
+  if (d.tldr || (d.action && d.action.signal)) {
+    setText($("tldr-text"), d.tldr || "");
+    const sig = ((d.action && d.action.signal) || "HOLD").toUpperCase();
+    const chip = $("signal-chip");
+    chip.className = "signal-chip " + sig.toLowerCase();
+    setText(chip, sig);
+    setText($("signal-reason"), (d.action && d.action.reasoning) || "");
+    $("tldr-section").style.display = "block";
+    $("tldr-section").classList.add("reveal");
   }
 
-  // Chart fallback: if no live chart yet, use digest.history
-  if ((!State.chart) && Array.isArray(d.history) && d.history.length > 1) {
-    State.symbol = State.symbol || (d.snapshot && d.snapshot.symbol) || "";
-    renderChart(d.history);
-    $("chart-section").style.display = "block";
+  // 03 Drivers
+  if (Array.isArray(d.drivers) && d.drivers.length) {
+    const host = $("drivers-list");
+    host.innerHTML = "";
+    d.drivers.forEach((x, i) => {
+      const row = document.createElement("div");
+      row.className = "driver-row";
+      row.innerHTML =
+        '<div class="driver-num">' + String(i + 1).padStart(2, "0") + "</div>" +
+        '<div class="driver-text">' + esc(x) + "</div>";
+      host.appendChild(row);
+    });
+    $("drivers-section").style.display = "block";
+    $("drivers-section").classList.add("reveal");
   }
 
-  renderThemes(d.themes || []);
-  renderOdds(d.markets || []);
-  // media: digest may carry final media urls
-  const media = d.media || {};
-  if (media.image_url) fillImage(media.image_url);
-  else ensureImagePlaceholder();
-  if (media.video_url) fillVideo(media.video_url);
-  else ensureVideoPlaceholder();
+  // 04 Bull / Bear
+  if (d.bull_case || d.bear_case) {
+    const bull = d.bull_case || {};
+    const bear = d.bear_case || {};
+    setText($("bull-outlook"), bull.outlook || "");
+    setText($("bear-outlook"), bear.outlook || "");
+    if (bull.level_to_watch != null) {
+      setText($("bull-level-v"), pxFmt(bull.level_to_watch));
+      $("bull-level").style.display = "flex";
+    } else { $("bull-level").style.display = "none"; }
+    if (bear.level_to_watch != null) {
+      setText($("bear-level-v"), pxFmt(bear.level_to_watch));
+      $("bear-level").style.display = "flex";
+    } else { $("bear-level").style.display = "none"; }
+    $("bullbear-section").style.display = "block";
+    $("bullbear-section").classList.add("reveal");
+  }
 
-  renderSentiment(d.sentiment_summary || []);
+  // 05 Chart already rendered
+
+  // 06 News
+  renderNews(d.news || []);
+
+  // 07 Watch list
+  renderWatchList(d.watch_this_week || []);
+
+  // Footer + citations
   renderCitations(d.citations || []);
-  renderMetaFoot(d.meta || {});
-
   $("footer").style.display = "block";
   $("footer").classList.add("reveal");
-
-  $("copy-btn").disabled = false;
 }
 
 function renderByline(meta) {
@@ -1401,233 +1327,123 @@ function renderByline(meta) {
     try { when = new Date(meta.generated_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch {}
     bits.push('<span>' + esc(when) + "</span>");
   }
-  if (meta.model) bits.push('<span>' + esc(meta.model) + "</span>");
-  if (meta.live === true) bits.push('<span class="live-tag">live data</span>');
-  if (meta.grounded === true) bits.push("<span>grounded</span>");
-  if (meta.fallback === true) bits.push('<span class="fallback-tag">fallback</span>');
-  if (meta.elapsed_s != null) bits.push('<span>' + esc(Number(meta.elapsed_s).toFixed(1)) + "s</span>");
-
+  if (meta.model && meta.model !== "offline") bits.push('<span>' + esc(meta.model) + "</span>");
+  if (meta.live === true) bits.push('<span class="live-tag">live</span>');
+  else bits.push('<span class="fallback-tag">offline mode</span>');
+  if (meta.elapsed_s != null) bits.push('<span>built in ' + esc(Number(meta.elapsed_s).toFixed(1)) + "s</span>");
   el.innerHTML = bits.join('<span class="pip"></span>');
 }
 
-function renderThemes(themes) {
-  const grid = $("themes-grid");
-  if (!Array.isArray(themes) || themes.length === 0) { $("themes-section").style.display = "none"; return; }
-  grid.innerHTML = "";
-  themes.forEach((t, i) => {
-    const sc = sentClass(t.sentiment);
-    const card = document.createElement("article");
-    card.className = "theme-card " + sc;
-    card.style.animationDelay = (i * 0.06) + "s";
-    card.innerHTML =
-      '<div class="tnum">' + String(i + 1).padStart(2, "0") + " / " + String(themes.length).padStart(2, "0") + "</div>" +
-      '<h3 class="ttitle">' + esc(t.title || "Untitled theme") + "</h3>" +
-      '<p class="tbody">' + esc(t.synthesis || "") + "</p>" +
-      '<span class="sentiment ' + sc + '"><span class="dot"></span>' + esc(sc) + "</span>";
-    grid.appendChild(card);
+function renderNews(items) {
+  const host = $("news-list");
+  if (!Array.isArray(items) || !items.length) {
+    host.innerHTML = '<div class="news-empty">No fresh news for this ticker right now.</div>';
+    $("news-section").style.display = "block";
+    return;
+  }
+  host.innerHTML = "";
+  items.forEach((n) => {
+    const a = document.createElement("a");
+    a.className = "news-row";
+    a.href = n.url || "#";
+    a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.innerHTML =
+      '<div>' +
+        '<div class="news-title">' + esc(n.title || "Untitled") + "</div>" +
+        '<div class="news-meta">' +
+          (n.publisher ? '<span class="npub">' + esc(n.publisher) + "</span>" : "") +
+          (n.age ? '<span>' + esc(n.age) + "</span>" : "") +
+        "</div>" +
+      "</div>" +
+      '<span class="news-link">Read →</span>';
+    host.appendChild(a);
   });
-  $("themes-section").style.display = "block";
-  $("themes-section").classList.add("reveal");
-  setText($("themes-note"), themes.length + (themes.length === 1 ? " theme" : " themes"));
+  $("news-section").style.display = "block";
+  $("news-section").classList.add("reveal");
 }
 
-function renderOdds(markets) {
-  const rail = $("odds-rail");
-  if (!Array.isArray(markets) || markets.length === 0) { $("odds-section").style.display = "none"; return; }
-  rail.innerHTML = "";
-  markets.forEach((m) => {
-    const prob = m.probability != null ? Math.max(0, Math.min(100, Number(m.probability))) : null;
-    const chip = document.createElement("div");
-    chip.className = "odds-chip";
-    chip.innerHTML =
-      '<div class="oq">' + esc(m.question || "Market") + "</div>" +
-      '<div class="oprob">' + (prob != null ? prob.toFixed(0) + "%" : "n/a") + "</div>" +
-      '<div class="obar"><span style="width:' + (prob != null ? prob : 0) + '%"></span></div>' +
-      '<div class="ofoot"><span class="otag">Implied</span>' +
-      '<span class="ovol">' + (m.volume != null ? fmtUSD(m.volume) + " vol" : "") + "</span></div>";
-    rail.appendChild(chip);
+function renderWatchList(items) {
+  const host = $("watch-list");
+  if (!Array.isArray(items) || !items.length) {
+    $("watch-section").style.display = "none";
+    return;
+  }
+  host.innerHTML = "";
+  items.forEach((x) => {
+    const row = document.createElement("div");
+    row.className = "watch-row";
+    setText(row, x);
+    host.appendChild(row);
   });
-  $("odds-section").style.display = "block";
-  $("odds-section").classList.add("reveal");
-}
-
-function renderSentiment(items) {
-  const grid = $("senti-grid");
-  if (!Array.isArray(items) || items.length === 0) { $("senti-section").style.display = "none"; return; }
-  grid.innerHTML = "";
-  items.forEach((s) => {
-    const sc = sentClass(s.sentiment);
-    const card = document.createElement("div");
-    card.className = "senti-card " + sc;
-    card.innerHTML =
-      '<div class="shead"><span class="ssource">' + esc(s.source || "Source") + "</span>" +
-      '<span class="spill">' + esc(sc) + "</span></div>" +
-      '<div class="stake">' + esc(s.takeaway || "") + "</div>";
-    grid.appendChild(card);
-  });
-  $("senti-section").style.display = "block";
-  $("senti-section").classList.add("reveal");
+  $("watch-section").style.display = "block";
+  $("watch-section").classList.add("reveal");
 }
 
 function renderCitations(cites) {
   const el = $("cites");
-  if (!Array.isArray(cites) || cites.length === 0) { el.innerHTML = ""; return; }
+  if (!Array.isArray(cites) || !cites.length) { el.innerHTML = ""; return; }
   el.innerHTML = '<span class="cites-lbl">Sources</span>' +
     cites.map((c) => '<span class="cite-chip">' + esc(c) + "</span>").join("");
 }
 
-function renderMetaFoot(meta) {
-  const el = $("meta-foot");
-  const bits = [];
-  if (meta.model)      bits.push('<span class="mf">Model <b>' + esc(meta.model) + "</b></span>");
-  if (meta.days != null)   bits.push('<span class="mf">Window <b>' + esc(meta.days) + "d</b></span>");
-  if (meta.asset_type) bits.push('<span class="mf">Asset <b>' + esc(String(meta.asset_type).toUpperCase()) + "</b></span>");
-  bits.push('<span class="mf">Live <b>' + (meta.live ? "yes" : "no") + "</b></span>");
-  bits.push('<span class="mf">Grounded <b>' + (meta.grounded ? "yes" : "no") + "</b></span>");
-  if (meta.elapsed_s != null) bits.push('<span class="mf">Built in <b>' + esc(Number(meta.elapsed_s).toFixed(1)) + "s</b></span>");
-  el.innerHTML = bits.join("");
+/* ─────────────────── Share card ─────────────────── */
+async function buildShareCard(d) {
+  $("share-section").style.display = "block";
+  $("share-section").classList.add("reveal");
+  // Build tweet text
+  $("share-tweet").textContent = composeTweet(d);
+
+  // Request the PNG from the server
+  try {
+    const resp = await fetch("/api/share-card", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(d),
+    });
+    if (!resp.ok) throw new Error("share card failed");
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    State._shareBlobUrl = url;
+    const preview = $("share-preview");
+    preview.innerHTML = '<img src="' + url + '" alt="Share card preview">';
+  } catch {
+    $("share-preview").innerHTML = '<div class="ph">share card unavailable</div>';
+  }
 }
 
-/* ─────────────────── Media slots ─────────────────── */
-function fillImage(url) {
-  if (!url) { ensureImagePlaceholder(); return; }
-  const band = $("image-band");
-  band.innerHTML =
-    '<img src="' + esc(url) + '" alt="Generated market visual" loading="eager" onerror="ensureImagePlaceholder()">' +
-    '<div class="igrad"></div><div class="icap">Generated visual</div>';
-  $("image-section").style.display = "block";
-  $("image-section").classList.add("reveal");
-}
-function ensureImagePlaceholder() {
-  const band = $("image-band");
-  band.innerHTML =
-    '<div class="placeholder"><div class="ph-inner">' +
-    '<div class="ph-glyph">' + svgImage() + "</div>" +
-    '<div class="ph-txt">No visual generated</div></div></div>';
-  $("image-section").style.display = "block";
-}
-function fillVideo(url) {
-  if (!url) { ensureVideoPlaceholder(); return; }
-  const slot = $("recap-slot");
-  slot.innerHTML =
-    '<span class="recap-tag"><span class="rd"></span>Recap / silent</span>' +
-    '<video src="' + esc(url) + '" muted autoplay loop playsinline controls preload="metadata" ' +
-    'onerror="ensureVideoPlaceholder()"></video>';
-  const v = slot.querySelector("video");
-  if (v) { v.muted = true; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
-}
-function ensureVideoPlaceholder() {
-  const slot = $("recap-slot");
-  slot.innerHTML =
-    '<span class="recap-tag">Recap</span>' +
-    '<div class="placeholder"><div class="ph-inner">' +
-    '<div class="ph-glyph">' + svgPlay() + "</div>" +
-    '<div class="ph-txt">No recap video</div></div></div>';
+function composeTweet(d) {
+  const snap = d.snapshot || {};
+  const sym = snap.symbol || State.symbol || "";
+  const price = snap.price != null ? pxFmt(snap.price) : "";
+  const cp = snap.change_pct;
+  const chg = cp != null ? (cp > 0 ? "+" : "") + cp.toFixed(2) + "%" : "";
+  const sig = ((d.action && d.action.signal) || "HOLD").toUpperCase();
+  const tldr = (d.tldr || d.headline || "").trim();
+  const line1 = "$" + sym + (price ? " — " + price : "") + (chg ? " (" + chg + ")" : "");
+  return line1 + "\n\n" + tldr + "\n\nMy read: " + sig + "\n\n(via Agnes)";
 }
 
-/* tiny inline SVGs (no emoji) */
-function svgPlay() {
-  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 5l11 7-11 7z"/></svg>';
-}
-function svgImage() {
-  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5L5 20"/></svg>';
-}
-
-/* ─────────────────── Copy summary (plain text from digest) ─────────────────── */
-$("copy-btn").addEventListener("click", () => {
-  const d = State.digest;
-  if (!d) return;
-  const text = buildSummaryText(d);
+$("copy-tweet-btn").addEventListener("click", () => {
+  const text = $("share-tweet").textContent || "";
+  if (!text) return;
   navigator.clipboard.writeText(text).then(() => {
-    const btn = $("copy-btn");
+    const btn = $("copy-tweet-btn");
     const orig = btn.innerHTML;
-    btn.innerHTML = '<span class="gk"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 6.5L5 9L9.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Copied';
+    btn.innerHTML = '<span class="ico">✓</span> Copied';
     setTimeout(() => { btn.innerHTML = orig; }, 1600);
-  }).catch(() => {
-    showError("Clipboard is unavailable in this context.");
-  });
+  }).catch(() => showError("Clipboard is unavailable in this browser."));
 });
 
-function renderSummary(d) {
-  const full = buildSummaryText(d);
-  const lines = full.split("\n");
-  let disp = full;
-  // The headline is already the H1 above, so drop it from the shown block to
-  // avoid a visible duplicate. The Copy button still copies the full text.
-  if (d.headline && lines[0] && lines[0].trim() === d.headline.trim()) {
-    disp = lines.slice(1).join("\n").replace(/^\s+/, "");
-  }
-  setText($("summary-text"), disp);
-  $("summary-section").style.display = "block";
-  $("summary-section").classList.add("reveal");
-}
-
-function buildSummaryText(d) {
-  const L = [];
-  const snap = d.snapshot || {};
-  L.push((d.headline || "Market digest").trim());
-  L.push("");
-
-  // snapshot line
-  const sym = snap.symbol || State.symbol || "";
-  const nm = snap.name ? " (" + snap.name + ")" : "";
-  if (sym || snap.price != null) {
-    let line = sym + nm;
-    if (snap.price != null) line += "  " + pxFmt(snap.price);
-    if (snap.change_pct != null) line += "  " + fmtPct(snap.change_pct, true);
-    L.push(line.trim());
-  }
-
-  // key levels
-  const kl = snap.key_levels || {};
-  const lv = [];
-  if (kl.week52_high != null) lv.push("52w high " + pxFmt(kl.week52_high));
-  if (kl.week52_low  != null) lv.push("52w low " + pxFmt(kl.week52_low));
-  if (kl.support     != null) lv.push("support " + pxFmt(kl.support));
-  if (kl.resistance  != null) lv.push("resistance " + pxFmt(kl.resistance));
-  if (lv.length) { L.push("Key levels: " + lv.join(", ")); }
-  L.push("");
-
-  // themes
-  if (Array.isArray(d.themes) && d.themes.length) {
-    L.push("THEMES");
-    d.themes.forEach((t) => {
-      L.push("- " + (t.title || "Theme") + " [" + sentClass(t.sentiment) + "]");
-      if (t.synthesis) L.push("  " + t.synthesis);
-    });
-    L.push("");
-  }
-
-  // top markets
-  if (Array.isArray(d.markets) && d.markets.length) {
-    L.push("PREDICTION MARKETS");
-    d.markets.slice(0, 5).forEach((m) => {
-      const p = m.probability != null ? Math.round(Number(m.probability)) + "%" : "n/a";
-      const v = m.volume != null ? ", " + fmtUSD(m.volume) + " vol" : "";
-      L.push("- " + p + "  " + (m.question || "Market") + v);
-    });
-    L.push("");
-  }
-
-  // sentiment summary
-  if (Array.isArray(d.sentiment_summary) && d.sentiment_summary.length) {
-    L.push("SIGNAL READ");
-    d.sentiment_summary.forEach((s) => {
-      L.push("- " + (s.source || "Source") + " [" + sentClass(s.sentiment) + "]: " + (s.takeaway || ""));
-    });
-    L.push("");
-  }
-
-  // citations
-  if (Array.isArray(d.citations) && d.citations.length) {
-    L.push("Sources: " + d.citations.join(", "));
-    L.push("");
-  }
-
-  L.push("Informational only, not investment advice.");
-
-  return L.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
-}
+$("download-card-btn").addEventListener("click", () => {
+  if (!State._shareBlobUrl) { showError("Share card not ready yet."); return; }
+  const sym = (State.digest && State.digest.snapshot && State.digest.snapshot.symbol) || State.symbol || "share";
+  const a = document.createElement("a");
+  a.href = State._shareBlobUrl;
+  a.download = sym + "-share.png";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => a.remove(), 0);
+});
 
 /* focus the symbol field on load */
 symInput.focus();
