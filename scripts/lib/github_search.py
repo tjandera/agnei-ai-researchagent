@@ -1,5 +1,5 @@
 """
-GitHub search connector — free, no API key required.
+GitHub search connector - free, no API key required.
 Searches repositories and discussions relevant to a topic.
 """
 

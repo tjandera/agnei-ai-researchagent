@@ -1,9 +1,20 @@
-# Agnes Research Skill — Python dependencies
+# Agnes Finance Research - Python dependencies
 # Install with: pip install -r requirements.txt
 
-# HTTP client (used by all connectors + agnes_client)
+# Web server (FastAPI app + SSE streaming)
+fastapi>=0.110.0
+uvicorn>=0.27.0
+
+# Market data + charts (Yahoo Finance, OHLCV, fundamentals)
+yfinance>=0.2.40
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# HTTP client (Agnes client + all connectors)
 requests>=2.31.0
 
-# Rich terminal UI (optional but strongly recommended)
-# Falls back to plain print() if not installed
+# Offline hero-image fallback (branded poster when no live image is generated)
+Pillow>=10.0.0
+
+# Rich terminal UI (optional, used by the legacy CLI path)
 rich>=13.0.0

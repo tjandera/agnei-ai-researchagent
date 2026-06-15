@@ -1,1 +1,1 @@
-# Agnes Research Skill — connector library
+# Agnes Research Skill - connector library

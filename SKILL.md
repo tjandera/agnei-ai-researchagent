@@ -1,7 +1,7 @@
 ---
 name: agnes-research
 version: "1.0.0"
-description: "Deep research engine covering the last 30 days across Reddit, X, YouTube, HN, Polymarket, and the web — synthesized by Agnes 2.0 Flash with Thinking mode. Optionally generates visual briefs and animated summaries via Agnes Image and Video models."
+description: "Deep research engine covering the last 30 days across Reddit, X, YouTube, HN, Polymarket, and the web - synthesized by Agnes 2.0 Flash with Thinking mode. Optionally generates visual briefs and animated summaries via Agnes Image and Video models."
 argument-hint: 'agnes-research AI video tools, agnes-research best project management software'
 allowed-tools: Bash, Read, Write, AskUserQuestion, WebSearch
 homepage: https://github.com/mvanhorn/last30days-skill
@@ -45,7 +45,7 @@ metadata:
 # Agnes Research Skill v1.0.0
 
 Research ANY topic across Reddit, X, Hacker News, Polymarket, and the web.
-Agnes 2.0 Flash acts as the orchestrator AND synthesizer — using tool calling to
+Agnes 2.0 Flash acts as the orchestrator AND synthesizer - using tool calling to
 run parallel searches and Thinking mode to produce grounded, cited reports.
 Optionally generates a visual report cover (Agnes Image 2.1 Flash) and animated
 brief (Agnes Video V2.0).
@@ -56,13 +56,13 @@ brief (Agnes Video V2.0).
 
 Before doing anything, parse the user's input for:
 
-1. **TOPIC** — what they want to learn about
-2. **QUERY_TYPE** — one of:
-   - `RECOMMENDATIONS` — "best X", "top X", "what X should I use"
-   - `NEWS` — "what's happening with X", "X news", "latest on X"
-   - `COMPARISON` — "X vs Y", "compare X and Y"
-   - `GENERAL` — anything else
-3. **FLAGS** — check for:
+1. **TOPIC** - what they want to learn about
+2. **QUERY_TYPE** - one of:
+   - `RECOMMENDATIONS` - "best X", "top X", "what X should I use"
+   - `NEWS` - "what's happening with X", "X news", "latest on X"
+   - `COMPARISON` - "X vs Y", "compare X and Y"
+   - `GENERAL` - anything else
+3. **FLAGS** - check for:
    - `--image` → generate visual report cover via Agnes Image 2.1 Flash
    - `--video` → generate animated brief via Agnes Video V2.0 (requires --image)
    - `--days=N` → look back N days (default 30)
@@ -143,7 +143,7 @@ After the script completes, run 2 WebSearches to catch blog/editorial coverage:
 - **COMPARISON:** `{TOPIC_A} vs {TOPIC_B} 2025`
 - **GENERAL:** `{TOPIC} 2025 discussion`, `{TOPIC} community`
 
-Exclude reddit.com, x.com (already covered by script). Cite web sources by name only — no raw URLs.
+Exclude reddit.com, x.com (already covered by script). Cite web sources by name only - no raw URLs.
 
 ---
 
@@ -151,13 +151,13 @@ Exclude reddit.com, x.com (already covered by script). Cite web sources by name 
 
 Agnes 2.0 Flash handles synthesis internally (Thinking mode on). When displaying results:
 
-1. **Ground every claim in data** — upvote counts, view counts, @handles, subreddits
-2. **Lead with people** — what Reddit/X/HN users are saying, not what editors wrote
-3. **Cross-platform signals are strongest** — same story on Reddit + HN + Polymarket = lead finding
-4. **Polymarket odds are hard evidence** — cite specific % and movement: "74% ceasefire by Dec 31 (up 8%)"
-5. **Quote the best takes directly** — top Reddit comments, YouTube transcript highlights
-6. **Cite sparingly:** "per @handle" or "per r/subreddit" — not chains of citations
-7. **No raw URLs ever** — use publication names only
+1. **Ground every claim in data** - upvote counts, view counts, @handles, subreddits
+2. **Lead with people** - what Reddit/X/HN users are saying, not what editors wrote
+3. **Cross-platform signals are strongest** - same story on Reddit + HN + Polymarket = lead finding
+4. **Polymarket odds are hard evidence** - cite specific % and movement: "74% ceasefire by Dec 31 (up 8%)"
+5. **Quote the best takes directly** - top Reddit comments, YouTube transcript highlights
+6. **Cite sparingly:** "per @handle" or "per r/subreddit" - not chains of citations
+7. **No raw URLs ever** - use publication names only
 
 ---
 
@@ -170,16 +170,16 @@ Agnes 2.0 Flash handles synthesis internally (Thinking mode on). When displaying
 ```
 ## What I learned about {TOPIC}
 
-**{Key finding 1}** — [1-2 sentences with specific data, per @handle or r/sub]
+**{Key finding 1}** - [1-2 sentences with specific data, per @handle or r/sub]
 
-**{Key finding 2}** — [1-2 sentences, per source]
+**{Key finding 2}** - [1-2 sentences, per source]
 
-**{Key finding 3}** — [1-2 sentences, per source]
+**{Key finding 3}** - [1-2 sentences, per source]
 
 KEY PATTERNS:
-1. [Pattern] — per @handle
-2. [Pattern] — per r/subreddit
-3. [Pattern] — per HN
+1. [Pattern] - per @handle
+2. [Pattern] - per r/subreddit
+3. [Pattern] - per HN
 ```
 
 ### 2. Stats block
@@ -190,7 +190,7 @@ KEY PATTERNS:
 ├─ 🟠 Reddit: {N} threads │ {N} upvotes │ {N} comments
 ├─ 🟡 HN: {N} stories │ {N} points │ {N} comments
 ├─ 📊 Polymarket: {N} markets │ {summary of top odds}
-├─ 🌐 Web: {N} pages — Source Name, Source Name
+├─ 🌐 Web: {N} pages - Source Name, Source Name
 └─ 🗣️ Top voices: @{handle1} ({N} likes) │ r/{sub1}, r/{sub2}
 ---
 ```
@@ -219,7 +219,7 @@ I'm now an expert on {TOPIC}. Some things I can help with:
 - [Deeper dive into a pattern or debate]
 ```
 
-Suggestions must be grounded in what was actually found — not generic.
+Suggestions must be grounded in what was actually found - not generic.
 
 ---
 
@@ -245,7 +245,7 @@ If `--agent` appears in arguments:
 1. Skip the intro display block
 2. Skip all `AskUserQuestion` calls
 3. Run research and output the complete report
-4. Stop — do not wait for user input
+4. Stop - do not wait for user input
 
 Agent mode report format:
 ```

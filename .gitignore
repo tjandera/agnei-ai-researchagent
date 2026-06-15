@@ -3,6 +3,15 @@ __pycache__/
 *.egg-info/
 .env
 .env.*
+!.env.example
 *.log
 ~/Documents/AgnesResearch/
 .DS_Store
+
+# Virtual environments
+.venv/
+venv/
+
+# Test/automation artifacts (root-level screenshots, never demo assets)
+.playwright-mcp/
+/*.png

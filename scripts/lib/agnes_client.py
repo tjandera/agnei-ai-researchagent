@@ -1,5 +1,5 @@
 """
-Agnes AI client — OpenAI-compatible wrapper for:
+Agnes AI client - OpenAI-compatible wrapper for:
   - Chat completions with tool calling (Agnes 2.0 Flash)
   - Thinking mode for deep synthesis
   - Image generation (Agnes Image 2.1 Flash)
@@ -126,7 +126,7 @@ class AgnesClient:
             response = self.chat(messages, tools=tools, thinking=thinking)
             tool_calls = self.get_tool_calls(response)
 
-            # No more tool calls — return the final answer
+            # No more tool calls - return the final answer
             if not tool_calls:
                 return self.get_message_content(response)
 
@@ -262,7 +262,7 @@ class AgnesClient:
             image_url:     Single image URL for image-to-video
             keyframe_urls: List of image URLs for keyframe animation
             num_frames:    Number of frames (must follow 8n+1 rule, max 441)
-            frame_rate:    FPS (1–60)
+            frame_rate:    FPS (1-60)
             width/height:  Output dimensions (auto-snapped to nearest standard)
             poll_interval: Seconds between status polls
             max_wait:      Max total seconds to wait for completion
@@ -322,8 +322,8 @@ class AgnesClient:
             if status == "failed":
                 raise RuntimeError(f"Video generation failed: {result.get('error')}")
 
-            # Still in progress — keep polling
+            # Still in progress - keep polling
             progress = result.get("progress", 0)
-            print(f"  Video: {status} ({progress}%) — {elapsed}s elapsed", flush=True)
+            print(f"  Video: {status} ({progress}%) - {elapsed}s elapsed", flush=True)
 
         raise TimeoutError(f"Video generation timed out after {max_wait}s (video_id={video_id})")

@@ -34,7 +34,7 @@ def generate_pdf(
         PDF as bytes
     """
     if not FPDF_AVAILABLE:
-        raise ImportError("fpdf2 not installed — run: pip install fpdf2")
+        raise ImportError("fpdf2 not installed - run: pip install fpdf2")
 
     from lib.yahoo_finance import fmt_large
 
@@ -163,7 +163,7 @@ def generate_pdf(
     clean = re.sub(r"\*(.*?)\*",     r"\1", clean)
     clean = re.sub(r"#{1,3}\s*",     "",    clean)
     clean = re.sub(r"─+",            "",    clean)
-    clean = clean.replace("—", "-").replace("–", "-").replace("’", "'").replace("“", '"').replace("”", '"')
+    clean = clean.replace("-", "-").replace("-", "-").replace("’", "'").replace("“", '"').replace("”", '"')
     clean = clean.encode("latin-1", errors="replace").decode("latin-1")
     clean = clean.strip()
 

@@ -1,5 +1,5 @@
 """
-Hacker News search via Algolia HN API — no auth required, free.
+Hacker News search via Algolia HN API - no auth required, free.
 Returns stories + top comments with point counts.
 """
 
