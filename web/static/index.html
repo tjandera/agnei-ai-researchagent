@@ -312,6 +312,30 @@ main { padding-bottom: 80px; }
 .ecell .ek { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .ecell .ev { font-family: var(--mono); font-size: 15px; color: var(--paper); margin-top: 4px; }
 
+/* Your position band (holding-aware) */
+.position-band {
+  margin-top: 14px; padding: 16px 22px;
+  background: linear-gradient(180deg, var(--panel), var(--ink2));
+  border: 1px solid var(--accent-deep); border-radius: 13px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px 34px;
+}
+.position-band .pb-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); width: 56px; line-height: 1.3; flex-shrink: 0; }
+.pb-cell { flex: 0 0 auto; }
+.pb-cell .pb-k { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: block; }
+.pb-cell .pb-v { font-family: var(--mono); font-size: 16px; color: var(--paper); margin-top: 5px; display: block; }
+.pb-cell .pb-v.up { color: var(--up); } .pb-cell .pb-v.down { color: var(--down); }
+
+/* Risk + income panels */
+.ri-wrap { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ri-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 16px 18px; }
+.ri-panel .ri-title { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.ri-panel .ri-title::before { content: ""; width: 16px; height: 1px; background: var(--accent); }
+.ri-cells { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+.ri-cell .rk { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: block; }
+.ri-cell .rv { font-family: var(--mono); font-size: 14px; color: var(--paper); margin-top: 3px; display: block; }
+.ri-cell .rv.up { color: var(--up); } .ri-cell .rv.down { color: var(--down); } .ri-cell .rv.muted { color: var(--muted); }
+@media (max-width: 760px) { .ri-wrap { grid-template-columns: 1fr; } }
+
 .details-toggle {
   margin-top: 10px; background: none; border: none; cursor: pointer;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
@@ -360,6 +384,24 @@ main { padding-bottom: 80px; }
 }
 .signal-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
 
+/* The full story — streamed essay */
+.essay-block { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+.essay-head {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 9px;
+}
+.essay-head::before { content: ""; width: 22px; height: 1px; background: var(--accent); display: inline-block; }
+.essay-text {
+  font-family: var(--serif); font-size: 16.5px; line-height: 1.72; color: var(--paper-dim);
+  white-space: pre-wrap;
+}
+.essay-text .caret {
+  display: inline-block; width: 7px; height: 1.05em; vertical-align: text-bottom;
+  background: var(--accent); margin-left: 2px; animation: blink 1s step-start infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
 /* ─────────── Drivers ─────────── */
 .drivers-list { display: grid; gap: 10px; }
 .driver-row {
@@ -402,6 +444,8 @@ main { padding-bottom: 80px; }
   text-decoration: none; color: inherit; transition: background .15s;
 }
 .news-row:hover { background: var(--panel); }
+.nr-main { display: block; text-decoration: none; color: inherit; min-width: 0; }
+.nr-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .news-title { font-size: 14.5px; line-height: 1.45; color: var(--paper); }
 .news-meta {
   display: flex; gap: 14px; align-items: center; margin-top: 5px;
@@ -418,6 +462,111 @@ main { padding-bottom: 80px; }
   background: var(--ink2); border-radius: 12px; border: 1px dashed var(--line2);
 }
 
+/* ─────────── Sources strip + feed badges ─────────── */
+.sources-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.source-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--ink2); border: 1px solid var(--line);
+  border-radius: 20px; padding: 5px 12px;
+  font-family: var(--mono); font-size: 11px; color: var(--paper-dim);
+}
+.source-chip.dim { opacity: .4; }
+.source-chip .sc-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.source-chip .sc-count { color: var(--paper); font-weight: 700; }
+.source-chip .sc-note { color: var(--muted); font-size: 10px; letter-spacing: .02em; }
+
+.feed-top { display: flex; align-items: flex-start; gap: 10px; }
+.feed-badge {
+  flex-shrink: 0; margin-top: 1px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 5px;
+  border: 1px solid var(--line2); color: var(--paper-dim); background: var(--ink);
+  white-space: nowrap;
+}
+
+/* Per-platform accents: badge text/border + strip dot */
+.feed-badge.p-yahoo        { color: #b794f6; border-color: rgba(183,148,246,.45); }
+.source-chip.p-yahoo       .sc-dot { background: #b794f6; }
+.feed-badge.p-google_news  { color: #6aa8ff; border-color: rgba(106,168,255,.45); }
+.source-chip.p-google_news .sc-dot { background: #6aa8ff; }
+.feed-badge.p-web          { color: #b9b6ad; border-color: rgba(185,182,173,.4); }
+.source-chip.p-web         .sc-dot { background: #b9b6ad; }
+.feed-badge.p-reddit       { color: #ff7043; border-color: rgba(255,112,67,.45); }
+.source-chip.p-reddit      .sc-dot { background: #ff7043; }
+.feed-badge.p-stocktwits   { color: #4fb286; border-color: rgba(79,178,134,.45); }
+.source-chip.p-stocktwits  .sc-dot { background: #4fb286; }
+.feed-badge.p-sec          { color: #e0a458; border-color: rgba(224,164,88,.45); }
+.source-chip.p-sec         .sc-dot { background: #e0a458; }
+.feed-badge.p-finnhub      { color: #67e8f9; border-color: rgba(103,232,249,.45); }
+.source-chip.p-finnhub     .sc-dot { background: #67e8f9; }
+
+/* ─────────── Analyst View panel ─────────── */
+.av-wrap {
+  margin-top: 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 13px;
+  padding: 18px 20px;
+}
+.av-wrap .av-head {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--paper-dim);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.av-wrap .av-head::before { content: ""; width: 16px; height: 1px; background: var(--accent); }
+.av-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px;
+}
+@media (max-width: 680px) { .av-grid { grid-template-columns: 1fr; } }
+.av-block .av-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.av-consensus-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.av-score { font-family: var(--mono); font-size: 22px; color: var(--paper); font-weight: 700; }
+.av-consensus-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 6px; font-weight: 600;
+}
+.av-consensus-label.buy  { background: rgba(52,211,153,.15); color: #34d399; }
+.av-consensus-label.hold { background: rgba(251,191,36,.12); color: #fbbf24; }
+.av-consensus-label.sell { background: rgba(248,113,113,.14); color: #f87171; }
+.av-bar { display: flex; height: 7px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 6px; }
+.av-bar .seg-buy  { background: #34d399; border-radius: 4px 0 0 4px; }
+.av-bar .seg-hold { background: #fbbf24; }
+.av-bar .seg-sell { background: #f87171; border-radius: 0 4px 4px 0; }
+.av-bar-counts { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.av-bar-counts span + span::before { content: " · "; }
+.av-pt-main { font-family: var(--mono); font-size: 20px; color: var(--paper); font-weight: 700; margin-bottom: 3px; }
+.av-pt-upside { font-family: var(--mono); font-size: 12px; margin-left: 6px; }
+.av-pt-upside.up   { color: var(--up); }
+.av-pt-upside.down { color: var(--down); }
+.av-pt-range { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.av-beat-main { font-family: var(--mono); font-size: 18px; color: var(--paper); font-weight: 700; margin-bottom: 7px; }
+.av-quarters { display: flex; gap: 6px; }
+.av-q {
+  width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; font-family: var(--mono); font-size: 9px;
+  letter-spacing: .03em; text-transform: uppercase;
+}
+.av-q.beat { background: rgba(52,211,153,.15); color: #34d399; border: 1px solid rgba(52,211,153,.3); }
+.av-q.miss { background: rgba(248,113,113,.10); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
+.av-q.na   { background: var(--ink2); color: var(--muted); border: 1px solid var(--line); }
+.av-insider-badge {
+  display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 600;
+  padding: 6px 14px; border-radius: 8px; letter-spacing: .04em;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.av-insider-badge.buying  { background: rgba(52,211,153,.15); color: #34d399; }
+.av-insider-badge.selling { background: rgba(248,113,113,.12); color: #f87171; }
+.av-insider-badge.neutral { background: var(--ink2); color: var(--muted); }
+.av-insider-note { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.av-ratios {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 16px;
+}
+.av-ratio { }
+.av-ratio .rk { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.av-ratio .rv { font-family: var(--mono); font-size: 13px; color: var(--paper); margin-top: 2px; }
+
 /* ─────────── Watch this week ─────────── */
 .watch-list { display: grid; gap: 9px; }
 .watch-row {
@@ -428,41 +577,6 @@ main { padding-bottom: 80px; }
 .watch-row::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
 }
-
-/* ─────────── Share card ─────────── */
-.share-card-wrap {
-  display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; align-items: start;
-}
-.share-preview {
-  border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
-  background: var(--ink2); position: relative;
-  aspect-ratio: 1200 / 675;
-}
-.share-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.share-preview .ph {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-}
-.share-side { display: flex; flex-direction: column; gap: 12px; }
-.share-tweet {
-  background: var(--ink2); border: 1px solid var(--line); border-radius: 11px;
-  padding: 14px 16px;
-  font-size: 13.5px; line-height: 1.55; color: var(--paper-dim);
-  white-space: pre-wrap; min-height: 120px;
-}
-.share-actions { display: flex; flex-direction: column; gap: 8px; }
-.share-btn {
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  background: var(--accent); color: #1a1407; border: 1px solid var(--accent);
-  border-radius: 10px; padding: 11px 16px; cursor: pointer;
-  font-family: var(--sans); font-weight: 600; font-size: 13.5px;
-  transition: all .15s;
-}
-.share-btn:hover { box-shadow: 0 6px 22px var(--accent-glow); }
-.share-btn.secondary { background: var(--ink2); color: var(--paper); border-color: var(--line2); }
-.share-btn.secondary:hover { border-color: var(--accent-deep); }
-.share-btn:disabled { opacity: .5; cursor: not-allowed; }
-.share-btn .ico { font-family: var(--mono); font-size: 12px; }
 
 /* ─────────── Chart ─────────── */
 .chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
@@ -523,6 +637,122 @@ main { padding-bottom: 80px; }
 .landing .lhint { margin-top: 24px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
 .landing .lrule { width: 60px; height: 2px; background: var(--accent); margin: 28px auto 0; opacity: .7; }
 
+/* ─────────── Add-holding form (landing + portfolio) ─────────── */
+.landing-add, .addbox-form { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; margin-top: 26px; }
+.addbox-form { justify-content: flex-start; margin-top: 12px; }
+.ah-in {
+  background: var(--ink2); border: 1px solid var(--line); border-radius: 9px;
+  height: 42px; padding: 0 14px; color: var(--paper);
+  font-family: var(--mono); font-size: 13px; outline: none; transition: border-color .18s, box-shadow .18s;
+}
+.ah-in:focus { border-color: var(--accent-deep); box-shadow: 0 0 0 3px var(--accent-glow); }
+#ah-ticker, #ah-ticker0 { width: 150px; text-transform: uppercase; }
+#ah-shares, #ah-shares0, #ah-cost, #ah-cost0 { width: 140px; }
+.ah-btn {
+  background: var(--accent); color: #1a1407; border: 1px solid var(--accent);
+  border-radius: 9px; height: 42px; padding: 0 20px; cursor: pointer;
+  font-family: var(--sans); font-weight: 700; font-size: 13.5px; white-space: nowrap; transition: all .18s;
+}
+.ah-btn:hover { box-shadow: 0 6px 22px var(--accent-glow); transform: translateY(-1px); }
+
+/* ─────────── Portfolio home ─────────── */
+.pview { padding: 38px 0 40px; }
+.pv-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 26px; flex-wrap: wrap; margin-bottom: 26px; }
+.pv-h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(26px, 3.4vw, 40px); line-height: 1.08; letter-spacing: -.018em; color: var(--paper); margin-top: 14px; }
+.pv-moverline { margin-top: 14px; font-size: 14px; color: var(--paper-dim); line-height: 1.5; max-width: 560px; }
+.pv-moverline .mv-up { color: var(--up); font-family: var(--mono); }
+.pv-moverline .mv-down { color: var(--down); font-family: var(--mono); }
+.pv-totals { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 13px; overflow: hidden; flex-shrink: 0; }
+.pvt { background: var(--ink2); padding: 14px 20px; min-width: 130px; }
+.pvt-k { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; }
+.pvt-v { font-family: var(--mono); font-size: 18px; color: var(--paper); margin-top: 5px; display: block; }
+.pvt-v.up { color: var(--up); } .pvt-v.down { color: var(--down); }
+
+.holdings { display: grid; gap: 11px; }
+.hcard {
+  display: grid; grid-template-columns: 1.4fr 2.4fr auto; gap: 20px; align-items: center;
+  padding: 16px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 13px;
+  transition: border-color .15s;
+}
+.hcard:hover { border-color: var(--line2); }
+.hc-id .hc-sym { font-family: var(--mono); font-weight: 700; font-size: 18px; color: var(--paper); letter-spacing: .02em; }
+.hc-id .hc-name { font-size: 12.5px; color: var(--muted); margin-top: 2px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hc-px { margin-top: 7px; display: flex; align-items: baseline; gap: 10px; }
+.hc-price { font-family: var(--mono); font-size: 15px; color: var(--paper); }
+.hc-chg { font-family: var(--mono); font-size: 12.5px; }
+.hc-chg.up { color: var(--up); } .hc-chg.down { color: var(--down); } .hc-chg.flat { color: var(--slate); }
+.hc-stats { display: grid; grid-template-columns: repeat(4, auto); gap: 22px; align-items: center; }
+.hc-stat { display: flex; flex-direction: column; gap: 3px; }
+.hc-k { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hc-v { font-family: var(--mono); font-size: 13.5px; color: var(--paper); }
+.hc-v.up { color: var(--up); } .hc-v.down { color: var(--down); } .hc-v.muted { color: var(--muted); }
+.hc-sig { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .1em; padding: 5px 10px; border-radius: 6px; border: 1px solid currentColor; }
+.hc-sig.accumulate { color: var(--up); background: var(--up-soft); }
+.hc-sig.hold { color: var(--paper-dim); background: rgba(140,138,130,.10); border-color: var(--line2); }
+.hc-sig.watch { color: var(--amber); background: var(--amber-soft); }
+.hc-sig.trim { color: var(--down); background: var(--down-soft); }
+.hc-actions { display: flex; flex-direction: column; gap: 7px; }
+.hc-btn { background: var(--ink2); color: var(--paper); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-family: var(--mono); font-size: 11px; white-space: nowrap; transition: all .15s; }
+.hc-btn:hover { border-color: var(--accent-deep); color: var(--accent); }
+.hc-btn.ghost { border-color: var(--line); color: var(--muted); }
+.hc-btn.ghost:hover { border-color: var(--down); color: var(--down); }
+
+.addbox { margin-top: 22px; padding: 20px 22px; background: var(--ink2); border: 1px dashed var(--line2); border-radius: 13px; }
+.addbox-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--paper-dim); }
+.addbox-hint { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+/* ─────────── Nav links ─────────── */
+.navlinks { display: flex; gap: 4px; flex-shrink: 0; }
+.navlink {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em;
+  color: var(--muted); padding: 7px 11px; border-radius: 7px; transition: all .15s;
+}
+.navlink:hover { color: var(--paper); background: var(--ink2); }
+.navlink.on { color: var(--accent); background: var(--accent-glow); }
+
+/* ─────────── Notes / journal ─────────── */
+.nview { padding: 38px 0 40px; }
+.notes-list { display: grid; gap: 22px; }
+.note-day { display: grid; gap: 10px; }
+.note-day-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); display: flex; align-items: center; gap: 10px;
+}
+.note-day-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.note-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 15px 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+}
+.note-card .nc-body { min-width: 0; }
+.note-card .nc-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; flex-wrap: wrap; }
+.note-tkr { font-family: var(--mono); font-weight: 700; font-size: 10.5px; color: var(--accent); border: 1px solid var(--accent-deep); border-radius: 5px; padding: 2px 7px; }
+.note-card .nc-head { font-size: 13px; color: var(--paper-dim); }
+.note-card .nc-head a { color: var(--paper-dim); text-decoration: none; border-bottom: 1px dotted var(--line2); }
+.note-card .nc-head a:hover { color: var(--accent); }
+.note-card .nc-text { font-size: 14.5px; line-height: 1.55; color: var(--paper); white-space: pre-wrap; }
+.note-card .nc-time { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.note-del { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 6px 10px; cursor: pointer; font-family: var(--mono); font-size: 10.5px; transition: all .15s; }
+.note-del:hover { border-color: var(--down); color: var(--down); }
+.notes-empty { padding: 40px; text-align: center; color: var(--muted); font-family: var(--mono); font-size: 12px; border: 1px dashed var(--line2); border-radius: 12px; }
+
+/* feed note button */
+.feed-note-btn { background: none; border: 1px solid var(--line2); color: var(--muted); border-radius: 6px; padding: 4px 9px; cursor: pointer; font-family: var(--mono); font-size: 10px; white-space: nowrap; transition: all .15s; margin-left: 10px; }
+.feed-note-btn:hover { border-color: var(--accent-deep); color: var(--accent); }
+
+/* ─────────── Modal ─────────── */
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(6,7,9,.72); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal { width: 100%; max-width: 520px; background: var(--panel); border: 1px solid var(--line2); border-radius: 16px; padding: 24px 26px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.modal-head { font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--paper); margin-bottom: 14px; }
+.modal-ctx { background: var(--ink2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 14px; font-size: 13px; color: var(--paper-dim); margin-bottom: 14px; display: none; }
+.modal-ctx.show { display: block; }
+.modal-ctx .mc-tkr { font-family: var(--mono); font-weight: 700; color: var(--accent); margin-right: 8px; }
+.modal-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.modal-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.note-area { width: 100%; min-height: 120px; resize: vertical; background: var(--ink2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--paper); font-family: var(--sans); font-size: 14.5px; line-height: 1.5; outline: none; }
+.note-area:focus { border-color: var(--accent-deep); box-shadow: 0 0 0 3px var(--accent-glow); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
 .reveal { animation: reveal .55s cubic-bezier(.2,.7,.3,1) both; }
 @keyframes reveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
@@ -531,7 +761,6 @@ main { padding-bottom: 80px; }
   .tldr-card { grid-template-columns: 1fr; }
   .signal-block { min-width: 0; }
   .bullbear-grid { grid-template-columns: 1fr; }
-  .share-card-wrap { grid-template-columns: 1fr; }
   .quote-band { grid-template-columns: 1fr; gap: 18px; }
   .controls { order: 3; width: 100%; }
 }
@@ -551,10 +780,15 @@ main { padding-bottom: 80px; }
 <!-- ─────────── Masthead ─────────── -->
 <header class="masthead">
   <div class="masthead-inner">
-    <div class="brand" id="brand-home" title="Reset">
+    <div class="brand" id="brand-home" title="Home">
       <span class="brand-mark">Agnes</span>
-      <span class="brand-tag">Stock Brief</span>
+      <span class="brand-tag">Investor Desk</span>
     </div>
+
+    <nav class="navlinks">
+      <button class="navlink" id="nav-portfolio">Portfolio</button>
+      <button class="navlink" id="nav-notes">Notes</button>
+    </nav>
 
     <div class="controls">
       <label class="field field-sym">
@@ -562,10 +796,11 @@ main { padding-bottom: 80px; }
         <input id="sym-input" type="text" placeholder="ticker" maxlength="12" autocomplete="off" spellcheck="false" aria-label="Ticker symbol">
       </label>
 
-      <div class="seg" id="window-seg" role="group" aria-label="Time window">
-        <button data-days="7">7D</button>
-        <button data-days="30" class="on">30D</button>
-        <button data-days="90">90D</button>
+      <div class="seg" id="window-seg" role="group" aria-label="News window">
+        <button data-days="1">Today</button>
+        <button data-days="7" class="on">7D</button>
+        <button data-days="15">15D</button>
+        <button data-days="30">30D</button>
       </div>
 
       <button class="run" id="run-btn">
@@ -599,12 +834,56 @@ main { padding-bottom: 80px; }
 
 <main class="wrap" id="main">
 
+  <!-- ============ My Portfolio (home) ============ -->
+  <section class="pview" id="portfolio-view" style="display:none">
+    <div class="pv-head">
+      <div class="pv-headline">
+        <span class="kicker">Your portfolio</span>
+        <h1 class="pv-h1">Here's where you stand</h1>
+        <div class="pv-moverline" id="pv-moverline"></div>
+      </div>
+      <div class="pv-totals" id="pv-totals"></div>
+    </div>
+
+    <div class="holdings" id="holdings-list"></div>
+
+    <div class="addbox">
+      <div class="addbox-title">Add a holding</div>
+      <div class="addbox-form">
+        <input id="ah-ticker" class="ah-in" placeholder="Ticker (e.g. AAPL)" maxlength="12" autocomplete="off" spellcheck="false">
+        <input id="ah-shares" class="ah-in" type="number" placeholder="Shares" min="0" step="any">
+        <input id="ah-cost" class="ah-in" type="number" placeholder="Avg buy price ($)" min="0" step="any">
+        <button id="ah-add" class="ah-btn">Add</button>
+      </div>
+      <div class="addbox-hint">Buy price is optional — but it unlocks profit/loss tracking on your position.</div>
+    </div>
+  </section>
+
+  <!-- ============ Notes (calendar journal) ============ -->
+  <section class="nview" id="notes-view" style="display:none">
+    <div class="pv-head">
+      <div class="pv-headline">
+        <span class="kicker">Your journal</span>
+        <h1 class="pv-h1">Notes</h1>
+        <div class="pv-moverline">Everything you've jotted down, grouped by day. Add a note from any headline, or write a free one.</div>
+      </div>
+      <button class="ah-btn" id="new-note-btn">＋ New note</button>
+    </div>
+    <div class="notes-list" id="notes-list"></div>
+  </section>
+
   <!-- Landing -->
   <section class="landing" id="landing">
-    <h1 class="lhead">Your stock, <span class="em">explained</span> — in plain English.</h1>
-    <p class="lsub">Enter a ticker. Get a one-paragraph read on what's happening, a clear action signal, and the latest news with clickable links. Built for people who own stock, not analysts.</p>
-    <p class="lhint">Try a symbol above and press Brief me, or open a demo.</p>
+    <h1 class="lhead">Your stocks, <span class="em">explained</span> — in plain English.</h1>
+    <p class="lsub">Save the stocks you hold, then get a plain-English read on each one: what's happening, what it means for your position, and the latest news from every source — all in one place.</p>
+    <p class="lhint">Add a holding below, or search any ticker above and press Brief me.</p>
     <div class="lrule"></div>
+    <div class="landing-add">
+      <input id="ah-ticker0" class="ah-in" placeholder="Ticker (e.g. AAPL)" maxlength="12" autocomplete="off" spellcheck="false">
+      <input id="ah-shares0" class="ah-in" type="number" placeholder="Shares" min="0" step="any">
+      <input id="ah-cost0" class="ah-in" type="number" placeholder="Avg buy price ($)" min="0" step="any">
+      <button id="ah-add0" class="ah-btn">Add my first holding</button>
+    </div>
   </section>
 
   <!-- Error -->
@@ -629,7 +908,17 @@ main { padding-bottom: 80px; }
         <span class="sec-note" id="quote-note"></span>
       </div>
       <div class="quote-band" id="quote-band"></div>
+      <div class="position-band" id="position-band" style="display:none"></div>
       <div class="essentials" id="essentials"></div>
+      <div class="ri-wrap" id="ri-wrap" style="display:none">
+        <div class="ri-panel" id="risk-panel"></div>
+        <div class="ri-panel" id="income-panel"></div>
+      </div>
+      <div class="av-wrap" id="analyst-wrap" style="display:none">
+        <div class="av-head">Analyst View · Finnhub</div>
+        <div class="av-grid" id="av-grid"></div>
+        <div class="av-ratios" id="av-ratios" style="display:none"></div>
+      </div>
       <div class="window-panel" id="window-panel" style="display:none"></div>
       <button class="details-toggle" id="details-toggle" style="display:none">Show all numbers ↓</button>
       <div class="details-grid" id="details-grid"></div>
@@ -648,6 +937,10 @@ main { padding-bottom: 80px; }
           <div class="signal-chip hold" id="signal-chip">HOLD</div>
           <div class="signal-reason" id="signal-reason"></div>
         </div>
+      </div>
+      <div class="essay-block" id="essay-block" style="display:none">
+        <div class="essay-head">The full story</div>
+        <div class="essay-text" id="essay-text"></div>
       </div>
     </section>
 
@@ -708,12 +1001,13 @@ main { padding-bottom: 80px; }
       </div>
     </section>
 
-    <!-- 06 News -->
+    <!-- 06 Latest across sources -->
     <section class="section" id="news-section" style="display:none">
       <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">06</span> Latest news</h2>
+        <h2 class="sec-title"><span class="idx">06</span> Latest across sources</h2>
         <span class="window-badge" id="news-window-badge">from the past 30 days</span>
       </div>
+      <div class="sources-strip" id="sources-strip"></div>
       <div class="news-list" id="news-list"></div>
     </section>
 
@@ -724,30 +1018,6 @@ main { padding-bottom: 80px; }
         <span class="sec-note">Upcoming events</span>
       </div>
       <div class="watch-list" id="watch-list"></div>
-    </section>
-
-    <!-- 08 Share card -->
-    <section class="section" id="share-section" style="display:none">
-      <div class="sec-head">
-        <h2 class="sec-title"><span class="idx">08</span> Share it</h2>
-        <span class="sec-note">Post a short summary on X / LinkedIn</span>
-      </div>
-      <div class="share-card-wrap">
-        <div class="share-preview" id="share-preview">
-          <div class="ph">building share card…</div>
-        </div>
-        <div class="share-side">
-          <div class="share-tweet" id="share-tweet"></div>
-          <div class="share-actions">
-            <button class="share-btn" id="copy-tweet-btn">
-              <span class="ico">⎘</span> Copy tweet text
-            </button>
-            <button class="share-btn secondary" id="download-card-btn">
-              <span class="ico">↓</span> Download share image
-            </button>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- Footer -->
@@ -762,12 +1032,29 @@ main { padding-bottom: 80px; }
   </div>
 </main>
 
+<!-- ─────────── Note composer (modal) ─────────── -->
+<div class="modal-overlay" id="note-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-head">Add a note</div>
+    <div class="modal-ctx" id="note-ctx"></div>
+    <div class="modal-row">
+      <label class="modal-lbl">Date</label>
+      <input type="date" id="note-date" class="ah-in">
+    </div>
+    <textarea id="note-text" class="note-area" placeholder="What do you want to remember about this? (your take, a question, a plan…)"></textarea>
+    <div class="modal-actions">
+      <button class="hc-btn ghost" id="note-cancel">Cancel</button>
+      <button class="ah-btn" id="note-save">Save note</button>
+    </div>
+  </div>
+</div>
+
 <script>
 "use strict";
 
 /* ─────────────────── State ─────────────────── */
 const State = {
-  days: 30,
+  days: 7,
   running: false,
   symbol: "",
   chartDays: 30,
@@ -780,13 +1067,25 @@ const PHASES = [
   { key: "snapshot",  label: "Market data" },
   { key: "research",  label: "Reading news" },
   { key: "synthesis", label: "Writing brief" },
-  { key: "image",     label: "Share card" },
 ];
 
 const TOOL_LABELS = {
   yahoo_news:        "Yahoo News",
   search_web:        "Web",
   search_reddit:     "Reddit",
+  google_news:       "Google News",
+  stocktwits:        "StockTwits",
+  sec:               "SEC EDGAR",
+};
+
+// Display names for the platform behind each feed item / source chip.
+const PLATFORM_LABELS = {
+  yahoo:        "Yahoo Finance",
+  google_news:  "Google News",
+  web:          "Web",
+  reddit:       "Reddit",
+  stocktwits:   "StockTwits",
+  sec:          "SEC EDGAR",
 };
 
 /* ─────────────────── DOM ─────────────────── */
@@ -846,15 +1145,24 @@ function pctInRange(price, low, high) {
   if (price == null || low == null || high == null || high <= low) return null;
   return Math.max(0, Math.min(100, (price - low) / (high - low) * 100));
 }
+function moneyFmt(n) {
+  if (n == null || isNaN(n)) return "—";
+  return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function moneySigned(n) {
+  if (n == null || isNaN(n)) return "—";
+  return (n >= 0 ? "+" : "−") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function gainCls(v) { return v == null ? "muted" : (v >= 0 ? "up" : "down"); }
 
 /* ─────────────────── Health ─────────────────── */
 (async function checkHealth() {
   try {
     const r = await fetch("/api/health");
     const d = await r.json();
-    if (d && d.agnes) {
+    if (d && (d.live || d.agnes)) {
       healthLamp.classList.add("ok");
-      setText(healthText, "live");
+      setText(healthText, d.model ? ("live · " + d.model) : "live");
     } else {
       healthLamp.classList.add("bad");
       setText(healthText, "offline mode");
@@ -894,8 +1202,7 @@ async function openDemo(key) {
     const r = await fetch("/api/demo/" + encodeURIComponent(key));
     if (!r.ok) throw new Error("demo unavailable");
     const data = await r.json();
-    landing.style.display = "none";
-    digestRoot.style.display = "block";
+    showView("brief");
     if (data.snapshot) renderSnapshotTicker(Object.assign({}, data.snapshot));
     if (Array.isArray(data.history) && data.history.length > 1) renderChart(data.history);
     renderDigest(data);
@@ -904,6 +1211,213 @@ async function openDemo(key) {
     showError("Could not load that demo.");
   }
 }
+
+/* ─────────────────── Views + Portfolio ─────────────────── */
+function showView(name) {
+  landing.style.display = (name === "landing") ? "block" : "none";
+  $("portfolio-view").style.display = (name === "portfolio") ? "block" : "none";
+  $("notes-view").style.display = (name === "notes") ? "block" : "none";
+  digestRoot.style.display = (name === "brief") ? "block" : "none";
+  $("nav-portfolio").classList.toggle("on", name === "portfolio");
+  $("nav-notes").classList.toggle("on", name === "notes");
+}
+
+async function loadPortfolio() {
+  let data = null;
+  try {
+    const r = await fetch("/api/portfolio/overview");
+    if (r.ok) data = await r.json();
+  } catch { /* offline */ }
+  const holds = (data && data.holdings) || [];
+  if (holds.length) {
+    renderPortfolio(data);
+    showView("portfolio");
+  } else {
+    showView("landing");
+  }
+}
+
+function renderPortfolio(data) {
+  const holds = data.holdings || [];
+  const t = data.totals || {};
+  const gpct = t.gain_pct;
+  $("pv-totals").innerHTML =
+    pvtCell("Total value", moneyFmt(t.value)) +
+    pvtCell("Total gain / loss",
+      (t.gain == null ? "—" : moneySigned(t.gain) + (gpct != null ? " (" + fmtPct(gpct, true) + ")" : "")),
+      gainCls(t.gain)) +
+    pvtCell("Today", moneySigned(t.day_change_value), gainCls(t.day_change_value));
+
+  const ml = $("pv-moverline");
+  if (data.movers && data.movers.length) {
+    ml.innerHTML = "Biggest movers today: " + data.movers.map((m) =>
+      '<span class="' + (m.change_pct >= 0 ? "mv-up" : "mv-down") + '">' +
+      esc(m.ticker) + " " + fmtPct(m.change_pct, true) + "</span>").join("  ·  ");
+  } else { ml.innerHTML = ""; }
+
+  const host = $("holdings-list");
+  host.innerHTML = "";
+  holds.forEach((h) => host.appendChild(holdingCard(h)));
+}
+
+function pvtCell(k, v, cls) {
+  return '<div class="pvt"><span class="pvt-k">' + esc(k) + '</span>' +
+         '<span class="pvt-v ' + (cls || "") + '">' + esc(v) + "</span></div>";
+}
+
+function holdingCard(h) {
+  const el = document.createElement("div");
+  el.className = "hcard";
+  const cls = (h.change_pct == null) ? "flat" : (h.change_pct >= 0 ? "up" : "down");
+  const arw = cls === "up" ? "▲" : (cls === "down" ? "▼" : "●");
+  const sig = String(h.signal || "HOLD");
+  const gain = (h.gain == null)
+    ? '<span class="hc-v muted">add buy price</span>'
+    : '<span class="hc-v ' + gainCls(h.gain) + '">' + moneySigned(h.gain) +
+      (h.gain_pct != null ? " (" + fmtPct(h.gain_pct, true) + ")" : "") + "</span>";
+  el.innerHTML =
+    '<div class="hc-id">' +
+      '<div><span class="hc-sym">' + esc(h.ticker) + "</span></div>" +
+      '<div class="hc-name">' + esc(h.name || "") + "</div>" +
+      '<div class="hc-px"><span class="hc-price">' + pxFmt(h.price) + "</span>" +
+        '<span class="hc-chg ' + cls + '">' + arw + " " + fmtPct(h.change_pct) + "</span></div>" +
+    "</div>" +
+    '<div class="hc-stats">' +
+      '<div class="hc-stat"><span class="hc-k">Your value</span><span class="hc-v">' + moneyFmt(h.value) + "</span></div>" +
+      '<div class="hc-stat"><span class="hc-k">Gain / loss</span>' + gain + "</div>" +
+      '<div class="hc-stat"><span class="hc-k">Weight</span><span class="hc-v">' + (h.weight != null ? h.weight.toFixed(1) + "%" : "—") + "</span></div>" +
+      '<div class="hc-stat"><span class="hc-sig ' + sig.toLowerCase() + '">' + esc(sig) + "</span></div>" +
+    "</div>" +
+    '<div class="hc-actions">' +
+      '<button class="hc-btn" data-open="' + esc(h.ticker) + '">Open brief →</button>' +
+      '<button class="hc-btn ghost" data-remove="' + esc(h.ticker) + '">Remove</button>' +
+    "</div>";
+  return el;
+}
+
+async function addHolding(ticker, shares, cost) {
+  ticker = (ticker || "").trim().toUpperCase();
+  if (!ticker) { showError("Enter a ticker symbol to add."); return; }
+  try {
+    const r = await fetch("/api/portfolio", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ticker,
+        shares: parseFloat(shares) || 0,
+        cost_basis: (cost !== "" && cost != null && !isNaN(parseFloat(cost))) ? parseFloat(cost) : null,
+      }),
+    });
+    if (!r.ok) throw new Error();
+    await loadPortfolio();
+  } catch { showError("Could not add that holding."); }
+}
+
+["", "0"].forEach((sfx) => {
+  const btn = $("ah-add" + sfx);
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    addHolding($("ah-ticker" + sfx).value, $("ah-shares" + sfx).value, $("ah-cost" + sfx).value)
+      .then(() => { ["ah-ticker", "ah-shares", "ah-cost"].forEach((id) => { const e = $(id + sfx); if (e) e.value = ""; }); });
+  });
+});
+
+$("holdings-list").addEventListener("click", async (e) => {
+  const open = e.target.getAttribute("data-open");
+  const rm = e.target.getAttribute("data-remove");
+  if (open) { symInput.value = open; startGenerate(); return; }
+  if (rm) {
+    try { await fetch("/api/portfolio/" + encodeURIComponent(rm), { method: "DELETE" }); await loadPortfolio(); }
+    catch { showError("Could not remove that holding."); }
+  }
+});
+
+/* ─────────────────── Notes (journal) ─────────────────── */
+let _noteCtx = {};
+function openNoteModal(ctx) {
+  _noteCtx = ctx || {};
+  const ctxEl = $("note-ctx");
+  if (_noteCtx.headline || _noteCtx.ticker) {
+    ctxEl.className = "modal-ctx show";
+    ctxEl.innerHTML = (_noteCtx.ticker ? '<span class="mc-tkr">' + esc(_noteCtx.ticker) + "</span>" : "") +
+      (_noteCtx.headline ? esc(_noteCtx.headline) : "");
+  } else { ctxEl.className = "modal-ctx"; ctxEl.innerHTML = ""; }
+  $("note-date").value = new Date().toISOString().slice(0, 10);
+  $("note-text").value = "";
+  $("note-modal").style.display = "flex";
+  setTimeout(() => $("note-text").focus(), 50);
+}
+function closeNoteModal() { $("note-modal").style.display = "none"; }
+async function saveNote() {
+  const text = $("note-text").value.trim();
+  if (!text) { $("note-text").focus(); return; }
+  try {
+    await fetch("/api/notes", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text, date: $("note-date").value || null,
+        ticker: _noteCtx.ticker || null, headline: _noteCtx.headline || null, url: _noteCtx.url || null,
+      }),
+    });
+    closeNoteModal();
+    if ($("notes-view").style.display !== "none") loadNotes();
+  } catch { showError("Could not save the note."); }
+}
+$("note-cancel").addEventListener("click", closeNoteModal);
+$("note-save").addEventListener("click", saveNote);
+$("note-modal").addEventListener("click", (e) => { if (e.target === $("note-modal")) closeNoteModal(); });
+
+async function loadNotes() {
+  if (State.running) return;
+  resetView();
+  let notes = [];
+  try { const r = await fetch("/api/notes"); if (r.ok) notes = (await r.json()).notes || []; } catch { /* offline */ }
+  renderNotes(notes);
+  showView("notes");
+}
+function renderNotes(notes) {
+  const host = $("notes-list");
+  if (!notes.length) {
+    host.innerHTML = '<div class="notes-empty">No notes yet. Add one from any headline in a brief, or click “New note”.</div>';
+    return;
+  }
+  const groups = {};
+  notes.forEach((n) => { (groups[n.date] = groups[n.date] || []).push(n); });
+  const dates = Object.keys(groups).sort().reverse();
+  host.innerHTML = dates.map((date) =>
+    '<div class="note-day"><div class="note-day-label">' + esc(prettyDate(date)) + "</div>" +
+    groups[date].map(noteCardHTML).join("") + "</div>"
+  ).join("");
+}
+function noteCardHTML(n) {
+  const head = n.headline
+    ? '<div class="nc-head">' + (n.url ? '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">' + esc(n.headline) + "</a>" : esc(n.headline)) + "</div>"
+    : "";
+  let time = "";
+  try { time = new Date(n.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }); } catch {}
+  return '<div class="note-card"><div class="nc-body">' +
+    '<div class="nc-meta">' + (n.ticker ? '<span class="note-tkr">' + esc(n.ticker) + "</span>" : "") +
+      '<span class="nc-time">' + esc(time) + "</span></div>" +
+    head + '<div class="nc-text">' + esc(n.text) + "</div></div>" +
+    '<button class="note-del" data-del="' + esc(n.id) + '">Delete</button></div>';
+}
+function prettyDate(d) {
+  try {
+    const dt = new Date(d + "T00:00:00");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const diff = Math.round((today - dt) / 86400000);
+    const label = dt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    if (diff === 0) return "Today · " + label;
+    if (diff === 1) return "Yesterday · " + label;
+    return label;
+  } catch { return d; }
+}
+$("notes-list").addEventListener("click", async (e) => {
+  const del = e.target.getAttribute("data-del");
+  if (del) { try { await fetch("/api/notes/" + encodeURIComponent(del), { method: "DELETE" }); loadNotes(); } catch {} }
+});
+$("nav-notes").addEventListener("click", () => loadNotes());
+$("nav-portfolio").addEventListener("click", () => { if (State.running) return; resetView(); loadPortfolio(); });
+$("new-note-btn").addEventListener("click", () => openNoteModal({}));
 
 /* ─────────────────── Controls ─────────────────── */
 $("window-seg").querySelectorAll("button").forEach((b) => {
@@ -917,8 +1431,7 @@ $("window-seg").querySelectorAll("button").forEach((b) => {
 $("brand-home").addEventListener("click", () => {
   if (State.running) return;
   resetView();
-  landing.style.display = "block";
-  digestRoot.style.display = "none";
+  loadPortfolio();
 });
 
 symInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGenerate(); });
@@ -978,14 +1491,18 @@ function resetView() {
   statusLine.innerHTML = "";
   State.digest = null;
   ["quote-section","tldr-section","drivers-section","bullbear-section",
-   "chart-section","news-section","watch-section","share-section","footer"]
+   "chart-section","news-section","watch-section","footer"]
     .forEach((id) => { const e = $(id); if (e) e.style.display = "none"; });
   const wp = $("window-panel"); if (wp) wp.style.display = "none";
+  const pb = $("position-band"); if (pb) pb.style.display = "none";
+  const ri = $("ri-wrap"); if (ri) ri.style.display = "none";
+  const aw = $("analyst-wrap"); if (aw) aw.style.display = "none";
+  const eb = $("essay-block"); if (eb) eb.style.display = "none";
+  const et = $("essay-text"); if (et) et.innerHTML = "";
   if (State.chart) { try { State.chart.destroy(); } catch {} State.chart = null; }
   $("price-canvas").style.display = "none";
   $("chart-skel").style.display = "grid";
   $("chart-skel").textContent = "loading price history";
-  $("share-preview").innerHTML = '<div class="ph">building share card…</div>';
 }
 
 function showError(msg, fatal) {
@@ -1063,8 +1580,7 @@ function startGenerate() {
   if (!symbol) { showError("Enter a ticker symbol to begin (e.g. AAPL, BTC-USD)."); return; }
 
   resetView();
-  landing.style.display = "none";
-  digestRoot.style.display = "block";
+  showView("brief");
   Object.keys(srcEls).forEach((k) => delete srcEls[k]);
 
   setRunning(true);
@@ -1120,9 +1636,6 @@ function handleFrame(ev) {
     case "search_done":
       doneSource(ev.tool, ev.query, ev.count, ev.error);
       break;
-    case "image":
-      // Share card preview will be requested after the digest arrives.
-      break;
     case "status":
       statusLine.innerHTML = '<span class="ring sm"></span> ' + esc(ev.message || "");
       break;
@@ -1133,7 +1646,17 @@ function handleFrame(ev) {
       State.digest = ev.data;
       completeAllPhases();
       renderDigest(ev.data);
-      buildShareCard(ev.data);
+      statusLine.innerHTML = "Brief ready";
+      break;
+    case "essay_start":
+      startEssay();
+      statusLine.innerHTML = '<span class="ring sm"></span> Writing the full story';
+      break;
+    case "essay_chunk":
+      appendEssay(ev.text || "");
+      break;
+    case "essay_done":
+      finishEssay(ev.text);
       statusLine.innerHTML = "Brief ready";
       break;
     case "done":
@@ -1202,7 +1725,7 @@ function renderDetails(t) {
     ["P / E",      t.pe_ratio != null ? Number(t.pe_ratio).toFixed(1) + "x" : null],
     ["Fwd P/E",    t.forward_pe != null ? Number(t.forward_pe).toFixed(1) + "x" : null],
     ["EPS",        t.eps != null ? pxFmt(t.eps) : null],
-    ["Div yield",  t.dividend_yield != null ? (Number(t.dividend_yield) * 100).toFixed(2) + "%" : null],
+    ["Div yield",  t.dividend_yield != null ? Number(t.dividend_yield).toFixed(2) + "%" : null],
     ["Beta",       t.beta != null ? Number(t.beta).toFixed(2) : null],
     ["Sector",     t.sector || null],
     ["Industry",   t.industry || null],
@@ -1215,6 +1738,175 @@ function renderDetails(t) {
   $("details-toggle").style.display = "inline-block";
   $("details-toggle").textContent = "Show all numbers ↓";
   $("details-grid").classList.remove("open");
+}
+
+/* ─────────────────── Your position / risk / income ─────────────────── */
+function renderPosition(pos) {
+  const band = $("position-band");
+  if (!band) return;
+  if (!pos) { band.style.display = "none"; return; }
+  const gainCell = pos.gain == null ? "" :
+    '<div class="pb-cell"><span class="pb-k">Gain / loss</span><span class="pb-v ' + gainCls(pos.gain) + '">' +
+    moneySigned(pos.gain) + (pos.gain_pct != null ? " (" + fmtPct(pos.gain_pct, true) + ")" : "") + "</span></div>";
+  band.innerHTML =
+    '<span class="pb-label">Your position</span>' +
+    '<div class="pb-cell"><span class="pb-k">Shares</span><span class="pb-v">' + (pos.shares != null ? Number(pos.shares).toLocaleString() : "—") + "</span></div>" +
+    (pos.cost_basis != null ? '<div class="pb-cell"><span class="pb-k">Avg cost</span><span class="pb-v">' + pxFmt(pos.cost_basis) + "</span></div>" : "") +
+    '<div class="pb-cell"><span class="pb-k">Your value</span><span class="pb-v">' + moneyFmt(pos.value) + "</span></div>" +
+    gainCell +
+    '<div class="pb-cell"><span class="pb-k">Today</span><span class="pb-v ' + gainCls(pos.day_change_value) + '">' + moneySigned(pos.day_change_value) + "</span></div>";
+  band.style.display = "flex";
+}
+
+function renderRiskIncome(risk, income) {
+  const wrap = $("ri-wrap");
+  if (!wrap) return;
+  if (!risk && !income) { wrap.style.display = "none"; return; }
+
+  const rcells = [];
+  if (risk) {
+    if (risk.range_pos != null) rcells.push(["52-week position", Math.round(risk.range_pos) + "% of range"]);
+    if (risk.volatility != null) rcells.push(["Volatility (annual)", risk.volatility + "%"]);
+    if (risk.beta != null) rcells.push(["Beta vs market", Number(risk.beta).toFixed(2)]);
+    if (risk.support != null) rcells.push(["Support (floor)", pxFmt(risk.support)]);
+    if (risk.resistance != null) rcells.push(["Resistance (ceiling)", pxFmt(risk.resistance)]);
+    if (risk.week52_low != null && risk.week52_high != null)
+      rcells.push(["52-week range", pxFmt(risk.week52_low) + " – " + pxFmt(risk.week52_high)]);
+  }
+  $("risk-panel").innerHTML = '<div class="ri-title">Risk read</div><div class="ri-cells">' +
+    (rcells.length ? rcells.map(([k, v]) => '<div class="ri-cell"><span class="rk">' + esc(k) + '</span><span class="rv">' + esc(v) + "</span></div>").join("")
+                   : '<span class="rv muted">No risk data.</span>') + "</div>";
+
+  const icells = [];
+  if (income) {
+    icells.push(["Dividend yield", income.dividend_yield ? Number(income.dividend_yield).toFixed(2) + "%" : "None"]);
+    if (income.annual_income != null) icells.push(["Your income / yr", moneyFmt(income.annual_income)]);
+    if (income.ex_dividend_date) icells.push(["Next ex-dividend", income.ex_dividend_date]);
+    if (income.earnings_date) icells.push(["Next earnings", income.earnings_date]);
+  }
+  $("income-panel").innerHTML = '<div class="ri-title">Income &amp; dates</div><div class="ri-cells">' +
+    (icells.length ? icells.map(([k, v]) => '<div class="ri-cell"><span class="rk">' + esc(k) + '</span><span class="rv">' + esc(v) + "</span></div>").join("")
+                   : '<span class="rv muted">No income data.</span>') + "</div>";
+  wrap.style.display = "grid";
+}
+
+/* ─────────────────── Analyst View (Finnhub) ─────────────────── */
+function renderAnalystPanel(fh) {
+  const wrap = $("analyst-wrap");
+  if (!wrap) return;
+  if (!fh || !Object.keys(fh).length) { wrap.style.display = "none"; return; }
+
+  const blocks = [];
+
+  const analyst = fh.analyst;
+  if (analyst) {
+    const total = analyst.total || 1;
+    const labelCls = analyst.label.toLowerCase().includes("buy") ? "buy"
+                   : analyst.label.toLowerCase().includes("sell") ? "sell" : "hold";
+    const buyN  = (analyst.strong_buy || 0) + (analyst.buy || 0);
+    const holdN = analyst.hold || 0;
+    const sellN = (analyst.sell || 0) + (analyst.strong_sell || 0);
+    blocks.push(
+      '<div class="av-block">' +
+        '<div class="av-label">Wall Street Consensus · ' + analyst.total + ' analysts</div>' +
+        '<div class="av-consensus-row">' +
+          '<span class="av-score">' + analyst.score.toFixed(1) +
+            '<span style="font-size:13px;color:var(--muted)">/10</span></span>' +
+          '<span class="av-consensus-label ' + labelCls + '">' + esc(analyst.label) + '</span>' +
+        '</div>' +
+        '<div class="av-bar">' +
+          '<div class="seg-buy" style="flex:' + buyN + '"></div>' +
+          '<div class="seg-hold" style="flex:' + holdN + '"></div>' +
+          '<div class="seg-sell" style="flex:' + sellN + '"></div>' +
+        '</div>' +
+        '<div class="av-bar-counts">' +
+          '<span style="color:#34d399">' + buyN + ' buy</span> · ' +
+          '<span style="color:#fbbf24">' + holdN + ' hold</span> · ' +
+          '<span style="color:#f87171">' + sellN + ' sell</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  const pt = fh.price_target;
+  if (pt && pt.mean) {
+    const upside = pt.upside_pct != null ? pt.upside_pct : null;
+    const uCls  = upside != null ? (upside >= 0 ? "up" : "down") : "";
+    const uText = upside != null ? (upside >= 0 ? "+" : "") + upside.toFixed(1) + "%" : "";
+    blocks.push(
+      '<div class="av-block">' +
+        '<div class="av-label">Analyst Price Target</div>' +
+        '<div class="av-pt-main">' + pxFmt(pt.mean) +
+          (uText ? ' <span class="av-pt-upside ' + uCls + '">' + esc(uText) + '</span>' : '') +
+        '</div>' +
+        '<div class="av-pt-range">Range ' + pxFmt(pt.low) + ' – ' + pxFmt(pt.high) + '</div>' +
+      '</div>'
+    );
+  }
+
+  const earnings = fh.earnings;
+  if (earnings) {
+    const qs = (earnings.quarters || []).map(function(q, i) {
+      const lbl = q.period ? q.period.slice(-5).replace("-", " Q") : ("Q" + (i + 1));
+      const cls = q.beat === true ? "beat" : q.beat === false ? "miss" : "na";
+      const tip = q.period + ": actual " + q.actual + " vs est " + q.estimate;
+      return '<div class="av-q ' + cls + '" title="' + esc(tip) + '">' + esc(lbl) + '</div>';
+    }).join("");
+    blocks.push(
+      '<div class="av-block">' +
+        '<div class="av-label">Earnings Track Record</div>' +
+        '<div class="av-beat-main">' + earnings.beat_rate + '% beat rate</div>' +
+        '<div class="av-quarters">' + qs + '</div>' +
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">' +
+          earnings.beats + ' of last ' + earnings.total + ' quarters beat estimates' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  const insider = fh.insider;
+  if (insider) {
+    const badgeCls = insider.label === "Net Buying" ? "buying"
+                   : insider.label === "Net Selling" ? "selling" : "neutral";
+    const pur = insider.total_purchase_usd || 0;
+    const sal = insider.total_sale_usd || 0;
+    const note = (pur || sal)
+      ? "$" + (pur / 1e6).toFixed(1) + "M bought · $" + (sal / 1e6).toFixed(1) + "M sold · past 90 days"
+      : "past 90 days";
+    blocks.push(
+      '<div class="av-block">' +
+        '<div class="av-label">Insider Activity</div>' +
+        '<div class="av-insider-badge ' + badgeCls + '">' + esc(insider.label) + '</div>' +
+        '<div class="av-insider-note">' + esc(note) + '</div>' +
+      '</div>'
+    );
+  }
+
+  $("av-grid").innerHTML = blocks.join("");
+
+  const ratios = fh.ratios;
+  const ratiosEl = $("av-ratios");
+  if (ratios && ratiosEl) {
+    const rows = [
+      ["P/E",          ratios.pe           != null ? ratios.pe.toFixed(1) : null],
+      ["P/B",          ratios.pb           != null ? ratios.pb.toFixed(2) : null],
+      ["ROE",          ratios.roe          != null ? ratios.roe.toFixed(1) + "%" : null],
+      ["Debt / Equity",ratios.debt_equity  != null ? ratios.debt_equity.toFixed(2) : null],
+      ["52W Return",   ratios.return_52w   != null ? (ratios.return_52w >= 0 ? "+" : "") + ratios.return_52w.toFixed(1) + "%" : null],
+      ["Rev Growth",   ratios.revenue_growth != null ? (ratios.revenue_growth >= 0 ? "+" : "") + ratios.revenue_growth.toFixed(1) + "%" : null],
+      ["EPS Growth",   ratios.eps_growth   != null ? (ratios.eps_growth >= 0 ? "+" : "") + ratios.eps_growth.toFixed(1) + "%" : null],
+    ].filter(function(r) { return r[1] != null; });
+    if (rows.length) {
+      ratiosEl.innerHTML = rows.map(function(r) {
+        return '<div class="av-ratio"><div class="rk">' + esc(r[0]) + '</div><div class="rv">' + esc(r[1]) + '</div></div>';
+      }).join("");
+      ratiosEl.style.display = "flex";
+    } else {
+      ratiosEl.style.display = "none";
+    }
+  }
+
+  wrap.style.display = "block";
 }
 
 /* ─────────────────── Chart ─────────────────── */
@@ -1284,6 +1976,33 @@ function renderChart(history) {
   });
 }
 
+/* ─────────────────── The full story (streamed essay) ─────────────────── */
+function startEssay() {
+  const block = $("essay-block"), host = $("essay-text");
+  if (!block || !host) return;
+  block.style.display = "block";
+  block.classList.add("reveal");
+  host.innerHTML = '<span id="essay-prose"></span><span class="caret" id="essay-caret"></span>';
+}
+function appendEssay(text) {
+  const p = $("essay-prose");
+  if (p) p.textContent += text;
+}
+function finishEssay(full) {
+  const caret = $("essay-caret");
+  if (caret) caret.remove();
+  const p = $("essay-prose");
+  if (p && full) p.textContent = full;
+  if (State.digest) State.digest.essay = (p && p.textContent) || full || "";
+}
+function renderEssayStatic(text) {
+  const block = $("essay-block"), host = $("essay-text");
+  if (!block || !host || !text) return;
+  block.style.display = "block";
+  host.innerHTML = '<span id="essay-prose"></span>';
+  $("essay-prose").textContent = text;
+}
+
 /* ─────────────────── Render: full digest ─────────────────── */
 function renderDigest(d) {
   if (!d) return;
@@ -1292,6 +2011,11 @@ function renderDigest(d) {
   setText($("headline"), d.headline || "Stock brief");
   renderByline(d.meta || {});
   renderWindowPanel((d.meta && d.meta.window) || null);
+
+  // 01b Your position + risk + income (holding-aware decision panels)
+  renderPosition(d.position || null);
+  renderRiskIncome(d.risk || null, d.income || null);
+  renderAnalystPanel(d.finnhub || null);
 
   // 02 TL;DR + action
   if (d.tldr || (d.action && d.action.signal)) {
@@ -1304,6 +2028,10 @@ function renderDigest(d) {
     $("tldr-section").style.display = "block";
     $("tldr-section").classList.add("reveal");
   }
+
+  // The full story — static render for cached demos / offline (live mode streams
+  // it in afterward via essay_* events, where d.essay is not yet set).
+  if (d.essay) renderEssayStatic(d.essay);
 
   // 03 Drivers
   if (Array.isArray(d.drivers) && d.drivers.length) {
@@ -1341,8 +2069,9 @@ function renderDigest(d) {
 
   // 05 Chart already rendered
 
-  // 06 News
-  renderNews(d.news || []);
+  // 06 Latest across sources
+  renderSourcesStrip((d.meta && d.meta.window && d.meta.window.sources) || []);
+  renderFeed(d.feed || d.news || []);
 
   // 07 Watch list
   renderWatchList(d.watch_this_week || []);
@@ -1432,33 +2161,69 @@ function ageLabel(days) {
   return days.toFixed(1) + "d ago";
 }
 
-function renderNews(items) {
+function renderSourcesStrip(sources) {
+  const host = $("sources-strip");
+  if (!host) return;
+  if (!Array.isArray(sources) || !sources.length) { host.innerHTML = ""; return; }
+  host.innerHTML = sources.map((s) => {
+    const plat = s.platform || "web";
+    const label = PLATFORM_LABELS[plat] || s.label || plat;
+    const dim = (!s.count) ? " dim" : "";
+    return '<span class="source-chip p-' + esc(plat) + dim + '">' +
+      '<span class="sc-dot"></span>' +
+      '<span class="sc-label">' + esc(label) + "</span>" +
+      '<span class="sc-count">' + esc(String(s.count == null ? 0 : s.count)) + "</span>" +
+      (s.note ? '<span class="sc-note">' + esc(s.note) + "</span>" : "") +
+      "</span>";
+  }).join("");
+}
+
+function renderFeed(items) {
   const host = $("news-list");
   if (!Array.isArray(items) || !items.length) {
-    host.innerHTML = '<div class="news-empty">No fresh news for this ticker right now.</div>';
+    host.innerHTML = '<div class="news-empty">No fresh items across sources right now.</div>';
     $("news-section").style.display = "block";
     return;
   }
   host.innerHTML = "";
   items.forEach((n) => {
-    const a = document.createElement("a");
-    a.className = "news-row";
-    a.href = n.url || "#";
-    a.target = "_blank"; a.rel = "noopener noreferrer";
-    a.innerHTML =
-      '<div>' +
-        '<div class="news-title">' + esc(n.title || "Untitled") + "</div>" +
+    // Tolerate legacy Yahoo-only news items (cached demos) that lack platform.
+    const plat = n.platform || "yahoo";
+    const platLabel = PLATFORM_LABELS[plat] || plat;
+    const sub = n.label || n.publisher || "";
+    const url = n.url || "#";
+    const row = document.createElement("div");
+    row.className = "news-row";
+    row.innerHTML =
+      '<a class="nr-main" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' +
+        '<div class="feed-top">' +
+          '<span class="feed-badge p-' + esc(plat) + '">' + esc(platLabel) + "</span>" +
+          '<span class="news-title">' + esc(n.title || "Untitled") + "</span>" +
+        "</div>" +
         '<div class="news-meta">' +
-          (n.publisher ? '<span class="npub">' + esc(n.publisher) + "</span>" : "") +
+          (sub ? '<span class="npub">' + esc(sub) + "</span>" : "") +
           (n.age ? '<span>' + esc(n.age) + "</span>" : "") +
         "</div>" +
-      "</div>" +
-      '<span class="news-link">Read →</span>';
-    host.appendChild(a);
+      "</a>" +
+      '<div class="nr-actions">' +
+        '<button class="feed-note-btn" data-note-title="' + esc(n.title || "") + '" data-note-url="' + esc(url) + '">＋ Note</button>' +
+        '<a class="news-link" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Open →</a>' +
+      "</div>";
+    host.appendChild(row);
   });
   $("news-section").style.display = "block";
   $("news-section").classList.add("reveal");
 }
+
+$("news-list").addEventListener("click", (e) => {
+  const btn = e.target.closest(".feed-note-btn");
+  if (!btn) return;
+  openNoteModal({
+    ticker: State.symbol || "",
+    headline: btn.getAttribute("data-note-title") || "",
+    url: btn.getAttribute("data-note-url") || "",
+  });
+});
 
 function renderWatchList(items) {
   const host = $("watch-list");
@@ -1484,66 +2249,8 @@ function renderCitations(cites) {
     cites.map((c) => '<span class="cite-chip">' + esc(c) + "</span>").join("");
 }
 
-/* ─────────────────── Share card ─────────────────── */
-async function buildShareCard(d) {
-  $("share-section").style.display = "block";
-  $("share-section").classList.add("reveal");
-  // Build tweet text
-  $("share-tweet").textContent = composeTweet(d);
-
-  // Request the PNG from the server
-  try {
-    const resp = await fetch("/api/share-card", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(d),
-    });
-    if (!resp.ok) throw new Error("share card failed");
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    State._shareBlobUrl = url;
-    const preview = $("share-preview");
-    preview.innerHTML = '<img src="' + url + '" alt="Share card preview">';
-  } catch {
-    $("share-preview").innerHTML = '<div class="ph">share card unavailable</div>';
-  }
-}
-
-function composeTweet(d) {
-  const snap = d.snapshot || {};
-  const sym = snap.symbol || State.symbol || "";
-  const price = snap.price != null ? pxFmt(snap.price) : "";
-  const cp = snap.change_pct;
-  const chg = cp != null ? (cp > 0 ? "+" : "") + cp.toFixed(2) + "%" : "";
-  const sig = ((d.action && d.action.signal) || "HOLD").toUpperCase();
-  const tldr = (d.tldr || d.headline || "").trim();
-  const line1 = "$" + sym + (price ? " — " + price : "") + (chg ? " (" + chg + ")" : "");
-  return line1 + "\n\n" + tldr + "\n\nMy read: " + sig + "\n\n(via Agnes)";
-}
-
-$("copy-tweet-btn").addEventListener("click", () => {
-  const text = $("share-tweet").textContent || "";
-  if (!text) return;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = $("copy-tweet-btn");
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<span class="ico">✓</span> Copied';
-    setTimeout(() => { btn.innerHTML = orig; }, 1600);
-  }).catch(() => showError("Clipboard is unavailable in this browser."));
-});
-
-$("download-card-btn").addEventListener("click", () => {
-  if (!State._shareBlobUrl) { showError("Share card not ready yet."); return; }
-  const sym = (State.digest && State.digest.snapshot && State.digest.snapshot.symbol) || State.symbol || "share";
-  const a = document.createElement("a");
-  a.href = State._shareBlobUrl;
-  a.download = sym + "-share.png";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => a.remove(), 0);
-});
-
-/* focus the symbol field on load */
+/* on load: show the portfolio if any holdings are saved, else the landing */
+loadPortfolio();
 symInput.focus();
 </script>
 </body>

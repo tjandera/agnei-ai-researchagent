@@ -42,7 +42,6 @@ def build_and_cache(symbol, days, key=None, client=None, with_media=False):
     digest = build_digest(
         symbol,
         days=days,
-        want_media=bool(with_media and client),
         client=client,
     )
 

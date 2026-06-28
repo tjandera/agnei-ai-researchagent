@@ -16,9 +16,18 @@ from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import yfinance as yf
-
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
+_yf = None
+
+
+def _yfinance():
+    """Import yfinance lazily and cache it (see yahoo_finance._yfinance)."""
+    global _yf
+    if _yf is None:
+        import yfinance as yf
+        _yf = yf
+    return _yf
 
 
 @contextmanager
@@ -83,7 +92,7 @@ def get_stock_news(
 
     with _silent():
         try:
-            raw = yf.Ticker(symbol.upper()).news or []
+            raw = _yfinance().Ticker(symbol.upper()).news or []
         except Exception:
             return []
 
@@ -165,7 +174,7 @@ def get_upcoming_events(symbol: str) -> Dict[str, Any]:
 
     with _silent():
         try:
-            cal = yf.Ticker(symbol.upper()).calendar
+            cal = _yfinance().Ticker(symbol.upper()).calendar
         except Exception:
             return {}
 

@@ -8,6 +8,7 @@ import queue
 import re
 import sys
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 _env_path = Path(__file__).parent.parent / ".env"
@@ -20,13 +21,13 @@ if _env_path.exists():
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from finance_digest import build_digest
-from lib.share_card import build_share_card
+from lib import store
 from lib.yahoo_finance import get_ticker_data, search_tickers
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -37,13 +38,24 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+@app.on_event("startup")
+async def _warm_yfinance():
+    """Warm yfinance's first import after the server binds so the first ticker
+    request is snappy (importing at module load can stall the bind)."""
+    def _go():
+        try:
+            from lib.yahoo_finance import _yfinance
+            _yfinance()
+        except Exception:
+            pass
+    threading.Thread(target=_go, daemon=True).start()
+
+
 def _make_client():
-    """Construct an AgnesClient if a key is present in this process, else None."""
-    if not os.environ.get("AGNES_API_KEY"):
-        return None
+    """Construct the synthesis backend (local LLM preferred, then Agnes)."""
     try:
-        from lib.agnes_client import AgnesClient
-        return AgnesClient()
+        from finance_digest import make_client
+        return make_client()
     except Exception:
         return None
 
@@ -55,9 +67,28 @@ def index():
 
 @app.get("/api/health")
 def health():
-    has_agnes = bool(os.environ.get("AGNES_API_KEY"))
+    """Report which synthesis backend is live so the UI can show it."""
+    from lib.gemini_client import GeminiClient
+
+    backend = os.environ.get("LLM_BACKEND", "").strip().lower()
+    gemini_up = backend != "agnes" and GeminiClient.is_available()
+    has_agnes = backend != "gemini" and bool(os.environ.get("AGNES_API_KEY"))
+
+    if gemini_up:
+        active, model = "gemini", os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    elif has_agnes:
+        active, model = "agnes", "agnes-2.0-flash"
+    else:
+        active, model = None, None
+
     web_key = next((k for k in ["BRAVE_API_KEY", "SERPER_API_KEY", "TAVILY_API_KEY"] if os.environ.get(k)), None)
-    return {"agnes": has_agnes, "web_search": web_key or False}
+    return {
+        "live": bool(active),
+        "backend": active,
+        "model": model,
+        "agnes": bool(active),  # back-compat: the masthead lamp reads this
+        "web_search": web_key or False,
+    }
 
 
 @app.get("/api/ticker/{symbol}")
@@ -99,7 +130,6 @@ async def generate_stream(
     days: int = 30,
     topic: str = None,
     quick: bool = False,
-    media: bool = True,
 ):
     """Stream a grounded finance digest build as Server-Sent Events."""
     import time as _time
@@ -126,10 +156,12 @@ async def generate_stream(
     def _cb(ev: dict):
         event_queue.put(ev)
 
+    holding = store.get_holding(symbol)  # personalize the brief when it's a holding
+
     def _run():
         try:
             build_digest(symbol, days=days, topic=topic, quick=quick,
-                         want_media=media, client=client, progress=_cb)
+                         client=client, progress=_cb, holding=holding)
         except Exception as exc:
             event_queue.put({"type": "error", "message": str(exc), "fatal": True})
         finally:
@@ -161,36 +193,6 @@ async def generate_stream(
         _stream(),
         media_type="text/event-stream",
         headers=_SSE_HEADERS,
-    )
-
-
-# -- Share card (PNG composited from the live digest) ---------------------------
-
-@app.post("/api/share-card")
-def share_card(payload: dict = Body(...)):
-    """Build a 1200x675 PNG share card from a digest payload.
-
-    The client posts the digest object it already has (after /api/generate),
-    so the server doesn't re-run synthesis just to render an image.
-    """
-    snap = payload.get("snapshot") or {}
-    action = payload.get("action") or {}
-    media = payload.get("media") or {}
-
-    png = build_share_card(
-        symbol=snap.get("symbol") or payload.get("symbol", ""),
-        name=snap.get("name") or payload.get("name", ""),
-        price=snap.get("price"),
-        change_pct=snap.get("change_pct"),
-        action_signal=action.get("signal", "HOLD"),
-        summary=payload.get("tldr", "") or payload.get("headline", ""),
-        image_url=media.get("image_url"),
-    )
-    sym = (snap.get("symbol") or "share").upper()
-    return Response(
-        content=png,
-        media_type="image/png",
-        headers={"Content-Disposition": f'inline; filename="{sym}-share.png"'},
     )
 
 
@@ -241,12 +243,129 @@ def demo_build(symbol: str, days: int = 30, key: str = None):
         pass
 
     try:
-        digest = build_digest(symbol, days=days, want_media=True, client=client)
+        digest = build_digest(symbol, days=days, client=client)
         (DEMO_DIR / f"{safe}.json").write_text(json.dumps(digest, ensure_ascii=False))
         return {"status": "ok", "key": safe, "cached": True,
                 "live": bool(digest.get("meta", {}).get("live"))}
     except Exception as e:
         return {"status": "error", "key": safe, "cached": False, "message": str(e)}
+
+
+# -- Portfolio (saved holdings) -------------------------------------------------
+
+@app.get("/api/portfolio")
+def portfolio_list():
+    """Return saved holdings (raw, no live prices)."""
+    return {"holdings": store.get_holdings()}
+
+
+@app.post("/api/portfolio")
+def portfolio_add(payload: dict):
+    """Add or update a holding: {ticker, shares, cost_basis}."""
+    ticker = (payload.get("ticker") or "").strip()
+    if not ticker:
+        raise HTTPException(status_code=400, detail="ticker is required")
+    holding = store.upsert_holding(ticker, payload.get("shares"), payload.get("cost_basis"))
+    return {"status": "ok", "holding": holding}
+
+
+@app.delete("/api/portfolio/{ticker}")
+def portfolio_remove(ticker: str):
+    removed = store.remove_holding(ticker)
+    return {"status": "ok", "removed": removed}
+
+
+@app.get("/api/portfolio/overview")
+def portfolio_overview():
+    """Holdings enriched with live price, P&L, weight, and a quick signal."""
+    from finance_digest import _quick_signal
+
+    holds = store.get_holdings()
+
+    def _enrich(h):
+        row = {"ticker": h.get("ticker"), "shares": _num(h.get("shares")) or 0,
+               "cost_basis": _num(h.get("cost_basis"))}
+        try:
+            d = get_ticker_data(h["ticker"], days=90)
+        except Exception:
+            row["error"] = True
+            return row
+        price = d.get("price")
+        shares = row["shares"]
+        cb = row["cost_basis"]
+        row.update({
+            "name": d.get("name"),
+            "price": price,
+            "change": d.get("change"),
+            "change_pct": d.get("change_pct"),
+            "value": (price or 0) * shares,
+            "cost": (cb or 0) * shares if cb is not None else None,
+            "day_change_value": (d.get("change") or 0) * shares,
+            "signal": _quick_signal(price, d.get("52w_low"), d.get("52w_high"), d.get("change_pct")),
+        })
+        if cb is not None and cb > 0:
+            row["gain"] = row["value"] - cb * shares
+            row["gain_pct"] = (price - cb) / cb * 100 if price is not None else None
+        else:
+            row["gain"] = row["gain_pct"] = None
+        return row
+
+    rows = []
+    if holds:
+        with ThreadPoolExecutor(max_workers=min(8, len(holds))) as pool:
+            rows = list(pool.map(_enrich, holds))
+
+    total_value = sum((r.get("value") or 0) for r in rows)
+    total_cost = sum((r.get("cost") or 0) for r in rows)
+    for r in rows:
+        r["weight"] = ((r.get("value") or 0) / total_value * 100) if total_value else 0
+    total_gain = total_value - total_cost
+    movers = sorted([r for r in rows if r.get("change_pct") is not None],
+                    key=lambda r: abs(r["change_pct"]), reverse=True)[:3]
+    return {
+        "holdings": rows,
+        "totals": {
+            "value": total_value,
+            "cost": total_cost,
+            "gain": total_gain if total_cost else None,
+            "gain_pct": (total_gain / total_cost * 100) if total_cost else None,
+            "day_change_value": sum((r.get("day_change_value") or 0) for r in rows),
+        },
+        "movers": [{"ticker": r["ticker"], "change_pct": r["change_pct"]} for r in movers],
+    }
+
+
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+# -- Notes (calendar journal) ---------------------------------------------------
+
+@app.get("/api/notes")
+def notes_list(date: str = None, ticker: str = None):
+    """Saved notes, newest first, optionally filtered by date or ticker."""
+    return {"notes": store.get_notes(date=date, ticker=ticker)}
+
+
+@app.post("/api/notes")
+def notes_add(payload: dict):
+    """Save a note: {text, date?, ticker?, headline?, url?}."""
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="note text is required")
+    note = store.add_note(
+        text, date=payload.get("date"), ticker=payload.get("ticker"),
+        headline=payload.get("headline"), url=payload.get("url"),
+    )
+    return {"status": "ok", "note": note}
+
+
+@app.delete("/api/notes/{note_id}")
+def notes_delete(note_id: str):
+    return {"status": "ok", "removed": store.delete_note(note_id)}
 
 
 if __name__ == "__main__":

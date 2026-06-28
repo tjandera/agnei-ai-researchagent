@@ -12,6 +12,9 @@ __pycache__/
 .venv/
 venv/
 
+# User data (saved holdings + notes) — private, never commit
+web/data/
+
 # Test/automation artifacts (root-level screenshots, never demo assets)
 .playwright-mcp/
 /*.png

@@ -6,16 +6,31 @@ Provides live prices, fundamentals, and historical OHLCV data.
 import io
 import logging
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
-
-import yfinance as yf
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
 # yfinance logs delisted/404 warnings on its own logger (e.g. "possibly
 # delisted; no price data found"). Silence them so a missing ticker stays quiet
 # on stdout/stderr. Level filtering only drops log records; it never affects
-# raised exceptions.
+# raised exceptions. (Naming the logger does not require yfinance to be imported.)
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
+_yf = None
+
+
+def _yfinance():
+    """Import yfinance lazily and cache it.
+
+    yfinance's first import is heavy and, on a flaky network, can stall for
+    minutes. Importing it on first use (rather than at module load) keeps web-app
+    startup instant; any stall then surfaces as a slow first data fetch behind the
+    normal progress UI instead of a server that never finishes booting.
+    """
+    global _yf
+    if _yf is None:
+        import yfinance as yf
+        _yf = yf
+    return _yf
 
 
 @contextmanager
@@ -40,7 +55,7 @@ def get_ticker_data(symbol: str, days: int = 90) -> Dict[str, Any]:
     if not symbol or not symbol.strip():
         raise ValueError("ticker symbol is required")
 
-    t = yf.Ticker(symbol.upper())
+    t = _yfinance().Ticker(symbol.upper())
     period = f"{min(days, 365)}d"
 
     with _silence_streams():

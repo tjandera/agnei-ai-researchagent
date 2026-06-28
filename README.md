@@ -1,24 +1,24 @@
-# Agnes Finance Research
+# Agnes Investor Desk
 
-A grounded, tri-modal finance digest for a single stock, ETF, or crypto symbol.
-You enter a ticker and the app returns one coherent briefing in three forms:
-structured data, designed cards, and a pair of generated visuals.
+A personal, on-device dashboard for everyday investors. Save the stocks you hold,
+then get a plain-English read on each one — what's happening, what it means for
+your position, and the latest news from every source — all in one place.
 
-1. Structured JSON: a headline, a price snapshot with key levels, three to five
-   themes with per theme sentiment, prediction markets, community sentiment, and
-   source citations.
-2. Designed cards: the same digest rendered as a clean HTML page with a price
-   chart, served from the built in web app. There is no PDF.
-3. Media: one abstract hero image and a short silent recap video that set the
-   mood for the asset.
+- **My Portfolio** — save your holdings (shares + buy price) and see live prices,
+  profit/loss in $ and %, weight, and an at-a-glance signal for each, plus
+  portfolio totals and today's movers.
+- **Holding-aware briefs** — open any stock for a grounded brief: a price
+  snapshot, **your position** P&L, a **risk read** (volatility, 52-week position,
+  key levels), **income** (dividend yield, ex-dividend, your income), a
+  plain-English "what to do for you," a streamed **"full story"** essay, and a
+  unified **news feed badged by source** (Yahoo, Google News, Web, Reddit,
+  StockTwits, SEC EDGAR). Pick the news window: Today / 7 / 15 / 30 days.
+- **Notes** — jot a note on any headline; browse them by day in a calendar journal.
 
-Every number you see comes from live market data (yfinance) and the chart. The
-image and video models are never asked to draw text, numbers, tickers, or
-readable charts. They produce atmosphere only.
-
-The product works with no API key at all. When the Agnes key is absent it builds
-the exact same grounded digest using a deterministic offline synthesis and a
-locally drawn poster for the hero visual.
+Every number comes from live market data (yfinance). The brief is written by a
+**local LLM** (Ollama + Qwen3 14B by default) — no API key, runs entirely on your
+machine. With no model reachable it still works using deterministic offline
+synthesis. Your holdings and notes are saved locally under `web/data/`.
 
 ---
 
@@ -30,19 +30,61 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
+### Local LLM (default synthesis backend)
 
-## Running the web app (do change the port number if it's already been used to a different number at web/app.py)
-```
+The brief is written by a **local LLM** served by [Ollama](https://ollama.com) —
+no API key, runs fully on your machine. Install Ollama, then start it and pull
+the model:
 
 ```bash
-python web/app.py
+ollama serve              # start the local server (leave running)
+ollama pull qwen3:14b     # ~9 GB; the default synthesis model
 ```
 
-Then open http://localhost:8765 in your browser. Enter a symbol such as `AAPL`,
-`BTC-USD`, or `NVDA` and the digest streams in as it is built: the price
-snapshot first, then research, then the synthesized themes, then the hero image
-and recap video when a key is present.
+The app auto-detects the running model. Until a model is pulled, the app still
+works using the deterministic offline synthesis. To use a different model, set
+`LOCAL_MODEL` in `.env` (e.g. `gpt-oss:20b`, `llama3.1:8b`).
+
+**Recommended models by machine (Apple Silicon, unified memory):**
+
+| RAM | Model | Pull |
+|---|---|---|
+| 16 GB | `llama3.1:8b` or `qwen3:8b` | `ollama pull qwen3:8b` |
+| 24 GB | `qwen3:14b` (default) | `ollama pull qwen3:14b` |
+| 32 GB+ | `gpt-oss:20b` or `qwen3:30b-a3b` | `ollama pull gpt-oss:20b` |
+
+---
+
+## Running the web app
+
+The easiest way — one command that starts Ollama (tuned for speed), makes sure
+the model is pulled and **warm**, then launches the app. Safe to re-run; it skips
+anything already running (no more "address already in use"):
+
+```bash
+./run.sh
+```
+
+Override the model or port with env vars: `LOCAL_MODEL=qwen3:8b PORT=8080 ./run.sh`.
+
+Or start it manually:
+
+```bash
+python web/app.py        # add --port 8080 if 3005 is taken
+```
+
+Then open http://localhost:3005 in your browser. Enter a symbol such as `AAPL`,
+`BTC-USD`, or `NVDA` and the digest streams in as it is built: the price snapshot
+first, then research across every source, then the synthesized brief, then a
+streamed "The full story" essay.
+
+**Speed:** the app keeps the model resident (`OLLAMA_KEEP_ALIVE`) so repeat briefs
+don't pay a model-reload stall. The first brief after launch is warmed by `run.sh`.
+
+**If the first brief seems to hang for a minute:** that's `yfinance`'s first
+network call on a flaky connection — the app itself starts instantly and the
+stall, if any, only affects the first data fetch (it's cached afterward). Just
+wait or retry; a stable network makes it instant.
 
 ---
 
@@ -56,11 +98,15 @@ cp .env.example .env
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `AGNES_API_KEY` | Yes for live mode | Prerequisite for live synthesis, the hero image, and the recap video. Without it the app still runs with grounded offline synthesis and a locally drawn poster. |
+| `LLM_BACKEND` | Optional | `ollama` (default) or `agnes`. Forces a specific synthesis backend. |
+| `OLLAMA_BASE_URL` | Optional | Local server URL. Defaults to `http://localhost:11434/v1`. |
+| `LOCAL_MODEL` | Optional | Local model name. Defaults to `qwen3:14b`. |
+| `AGNES_API_KEY` | Optional | Cloud fallback for synthesis. Only used if `LLM_BACKEND=agnes` or no local model is reachable. |
 | `BRAVE_API_KEY` | Optional | Improves web and Reddit results. Falls back to keyless sources when empty. |
 
-The web app reads `.env` from the project root on startup. The key is injected
-only into the running app process.
+The web app reads `.env` from the project root on startup. Values are injected
+only into the running app process. With no backend reachable at all, the app
+still serves grounded digests via deterministic offline synthesis.
 
 ---
 
@@ -94,71 +140,66 @@ the same `web/static/demo/` folder.
 
 ---
 
-## A note on the visuals
-
-The hero image and recap video are mood pieces, never data. The prompts
-explicitly forbid text, words, numbers, tickers, logos, and readable charts. All
-figures in the digest are sourced from yfinance and drawn into the price chart,
-so nothing financial is ever hallucinated by an image or video model. The
-offline poster shows only the symbol and asset name as typographic labels and a
-trend up or trend down tag, never a price.
-
----
-
 ## Architecture
 
 ```
-agnei-ai-researchagent/
+agnes-investor-desk/
 ├── requirements.txt
-├── .env.example
+├── run.sh                     One-command launcher (Ollama + app)
 ├── web/
-│   ├── app.py                 FastAPI app, SSE streaming, demo routes
+│   ├── app.py                 FastAPI: SSE briefs, portfolio + notes APIs
+│   ├── data/                  Your saved holdings + notes (git-ignored)
 │   └── static/
-│       ├── index.html         Single page UI: input, chart, cards, media
-│       └── demo/              Cached seed digests, posters, and index.json
+│       └── index.html         Single-page UI: portfolio, briefs, notes
 └── scripts/
     ├── finance_digest.py      Orchestrator: build_digest end to end
-    ├── cache_demo.py          Builds and caches the demo seeds
     └── lib/
-        ├── agnes_client.py    Agnes wrapper: chat, image, video
-        ├── media_gen.py       Hero image, recap video, offline poster
+        ├── local_client.py    Local LLM client (Ollama, OpenAI-compatible)
+        ├── store.py           JSON persistence for holdings + notes
         ├── yahoo_finance.py   Live prices, fundamentals, OHLCV history
-        ├── polymarket_search.py
-        ├── web_search.py
-        ├── reddit_search.py
-        ├── hackernews_search.py
-        └── chart_gen.py       PNG price chart for the cards
+        ├── yahoo_news.py · google_news_search.py · web_search.py
+        ├── reddit_search.py · stocktwits_search.py · sec_edgar_search.py
+        └── chart_gen.py       PNG price chart
 ```
 
 ### How it works
 
-1. Snapshot. `finance_digest.build_digest` pulls live market data for the symbol
-   from the `yahoo_finance` tool: price, daily change, 52 week range, volume, and
-   fundamentals.
-2. Research. It fans out in parallel across the Polymarket, web, Reddit, and
-   Hacker News connectors for odds, news, and community sentiment.
-3. Synthesis. With a key, Agnes synthesizes a structured JSON digest grounded in
-   the verified numbers. With no key, a deterministic offline synthesis produces
-   the same shape from the same real data. Real numbers always win over model
-   output.
-4. Media. With a key, Agnes generates one abstract hero image, then a short
-   silent recap video seeded by that image. With no key, a locally drawn poster
-   stands in. Media is best effort and never blocks the digest.
+1. Snapshot. `build_digest` pulls live market data from `yahoo_finance`: price,
+   daily change, 52-week range, volume, and fundamentals.
+2. Research. It fans out in parallel across seven sources — Yahoo Finance news,
+   Google News, the web (Brave), Reddit, StockTwits, SEC EDGAR filings, and the
+   Yahoo earnings calendar — then merges them into one ranked, de-duplicated feed
+   badged by platform.
+3. Synthesis. A local LLM writes a structured JSON brief grounded in the verified
+   numbers, then streams a plain-English "full story" essay. If the stock is in
+   your portfolio, the brief is personalized to your position and gain/loss. With
+   no model reachable, a deterministic offline synthesis produces the same shape.
+   Real numbers always win over model output.
+4. Decision panels. Your position P&L, a risk read (volatility, 52-week position,
+   support/resistance), and income (yield, ex-dividend, your income) are computed
+   from the live data and shown with the brief.
 
-### Agnes models used
+### Models
 
 | Model | Role |
 |---|---|
-| `agnes-2.0-flash` | Synthesizer with Thinking mode |
-| `agnes-image-2.1-flash` | Abstract hero image |
-| `agnes-video-v2.0` | Short silent recap video |
+| `qwen3:14b` (local, default) | Brief synthesis + "full story" essay |
 
-### Connectors
+No image or video models — the dashboard is data and text only. See the Local LLM
+section above for model alternatives by RAM.
 
-| Source | Auth |
-|---|---|
-| Yahoo Finance | None |
-| Polymarket | None |
-| Hacker News | None |
-| Reddit | None, better with `BRAVE_API_KEY` |
-| Web | `BRAVE_API_KEY` optional, keyless fallback |
+### Connectors (wired into the brief)
+
+| Source | What it adds | Auth |
+|---|---|---|
+| Yahoo Finance | Headlines + earnings/ex-div calendar | None |
+| Google News | Broad headline coverage (RSS) | None |
+| Web | Brave search results | `BRAVE_API_KEY` optional, keyless fallback |
+| Reddit | Community threads | None, better with `BRAVE_API_KEY` |
+| StockTwits | Retail sentiment (bullish/bearish) | None |
+| SEC EDGAR | Official filings (8-K, 10-Q, Form 4) | None |
+
+Each item in the brief's "Latest across sources" feed is badged with its
+platform, and a sources strip shows how many hits each platform returned.
+(`polymarket_search.py` and `hackernews_search.py` exist but are not part of the
+stock digest.)

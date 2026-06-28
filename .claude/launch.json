@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "agnes",
+      "runtimeExecutable": "/Users/matth/Documents/agnes_finance/.venv/bin/python",
+      "runtimeArgs": ["/Users/matth/Documents/agnes_finance/web/app.py"],
+      "port": 3005
+    }
+  ]
+}

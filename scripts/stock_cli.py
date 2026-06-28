@@ -363,7 +363,6 @@ def main(argv=None):
         symbol=args.symbol,
         days=args.days,
         quick=args.quick,
-        want_media=False,
     )
 
     if use_rich:
